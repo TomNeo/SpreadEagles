@@ -22,18 +22,20 @@ public class Building extends Sprite {
     private boolean score;
     private ArrayList<Breakables> breakableList;
     private ITextureRegion blockTexture;
+    private boolean killed;
 
     public Building(float pX, float pY, ITextureRegion pTextureRegion, VertexBufferObjectManager pVertexBufferObjectManager, SpreadEaglesActivity activity) {
         super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
         parentActivity = activity;
         blockTexture = pTextureRegion;
-       breakableList = new ArrayList<Breakables>(0);
+        killed = false;
+        breakableList = new ArrayList<Breakables>(0);
         setProperties();
         setMovements();
     }
 
-    public Breakables addBreakable(float pX,float pY, float width, float height, ITextureRegion img){
-        Log.v("Breakable", pX + ":" +pY);
+    public Breakables addBreakable(float pX,float pY, float width, float height, ITextureRegion img) {
+        Log.v("Breakable", pX + ":" + pY);
         Breakables bufferBreakable = new Breakables(pX,pY,img,parentActivity.getVertexBufferObjectManager(),parentActivity);
         bufferBreakable.setHeight(height);
         bufferBreakable.setWidth(width);
@@ -47,12 +49,15 @@ public class Building extends Sprite {
 
         this.setWidth((1 + (1 / (1 + rand.nextInt(100)))) * 200);
         this.setHeight((parentActivity.getCAMERA_HEIGHT() - this.getY()) - 48);
-        this.setColor(0,1,1,1);
+        this.setColor(0, 1, 1, 1);
 
         float bufferWidth = this.getWidth()/4;
         float bufferHeight = this.getHeight()/4;
 
-        Breakables door = this.addBreakable(this.getX() + this.getWidth()/2,(this.getY()+(this.getHeight()/2)),bufferWidth,bufferHeight,blockTexture);
+
+        Breakables door = this.addBreakable(this.getX() + rand.nextInt((int)(this.getWidth() - bufferWidth)),this.getY() + this.getHeight()/2 + rand.nextInt((int)(this.getHeight()/2 - bufferHeight)) ,bufferWidth,bufferHeight,blockTexture);
+        Breakables window = this.addBreakable(this.getX() + rand.nextInt((int)(this.getWidth() - bufferWidth)),this.getY() + rand.nextInt((int)(this.getHeight()/2 - bufferHeight)),bufferWidth,bufferHeight,blockTexture);
+
     }
 
     private void setMovements(){
@@ -77,7 +82,7 @@ public class Building extends Sprite {
                 }
                 @Override
                 public void onModifierFinished(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
-                    killMe();
+                    iEntity.onDetached();
                 }
             });
             getBreakables().get(i).registerEntityModifier(ModifierBuffer);
@@ -91,6 +96,10 @@ public class Building extends Sprite {
     }
 
     private void killMe(){
-        parentActivity.addToList(this);
+        if(!killed){
+            killed = true;
+            parentActivity.addToList(this);
+            Log.v("Remove", "" + parentActivity.removeMe(this));
+        }
     }
 }

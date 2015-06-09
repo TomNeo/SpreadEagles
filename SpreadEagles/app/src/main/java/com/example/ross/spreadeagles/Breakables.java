@@ -12,18 +12,35 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 public class Breakables extends Sprite implements IEntity{
 
     private SpreadEaglesActivity parentActivity;
+    private boolean hit;
+    private boolean killed;
 
     public Breakables(float pX, float pY, ITextureRegion pTextureRegion, VertexBufferObjectManager pVertexBufferObjectManager, SpreadEaglesActivity pParent) {
         super(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObjectManager, DrawType.STATIC);
         this.parentActivity  = pParent;
         this.setColor(1,0,0,1);
+        hit = false;
+        killed = false;
     }
 
     public void killMe(){
-        parentActivity.addToList(this);
+        if(!killed) {
+            killed = true;
+            parentActivity.addToList(this);
+        }
+    }
+
+    @Override
+    public void onDetached(){
+            killMe();
+    }
+
+    public boolean isHit(){
+        return hit;
     }
 
     public void hit(){
+        hit = true;
         this.setColor(0,1,0,1);
     }
 

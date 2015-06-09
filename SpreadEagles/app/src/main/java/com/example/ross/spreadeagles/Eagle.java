@@ -15,15 +15,19 @@ import org.andengine.util.modifier.IModifier;
  */
 public class Eagle extends Sprite {
 
-    private final float duration = .3f;
+    private final float duration = .4f;
+    private float life = 0;
 
     private SpreadEaglesActivity parentActivity;
+    private boolean killed;
 
     public Eagle(float pX, float pY, ITextureRegion pTextureRegion, VertexBufferObjectManager pVertexBufferObjectManager, SpreadEaglesActivity pParent) {
         super(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObjectManager, DrawType.STATIC);
         this.parentActivity  = pParent;
+        parentActivity.addEagle();
         this.setWidth(50);
         this.setHeight(50);
+        killed = false;
     }
 
     public void setMovements(float pX,float pY){
@@ -37,6 +41,23 @@ public class Eagle extends Sprite {
 
             @Override
             public void onModifierFinished(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
+                /*for (int i = 0; i < parentActivity.getActiveBuildings().size(); i++) {
+                    Log.v("Counting Building loops", "Count:" + i);
+                    if(i > 0){
+                        if (Eagle.this.collidesWith(parentActivity.getActiveBuildings().get(i))) {
+                            for (int m = 0; m < parentActivity.getActiveBuildings().get(i).getBreakables().size(); m++) {
+                                if (Eagle.this.collidesWith(parentActivity.getActiveBuildings().get(i).getBreakables().get(m))) {
+                                    if (!parentActivity.getActiveBuildings().get(i).getBreakables().get(m).isHit()) {
+                                        parentActivity.getActiveBuildings().get(i).getBreakables().get(m).hit();
+                                        clearEntityModifiers();
+                                        killMe();
+                                    }
+                                }
+                            }
+                            Log.v("CollidedWithBuilding", "hit building:" + parentActivity.getActiveBuildings().get(i).toString());
+                        }
+                    }
+                }*/
                 killMe();
             }
         });
@@ -46,24 +67,40 @@ public class Eagle extends Sprite {
     @Override
     protected void onManagedUpdate(float pSecondsElapsed){
         super.onManagedUpdate(pSecondsElapsed);
-        Log.v("InEagle", "Eagle update:" +this.toString());
-        for (int i=0;i < parentActivity.getActiveBuildings().size();i++) {
-            Log.v("Counting Building loops","Count:" + i);
-            if (this.collidesWith(parentActivity.getActiveBuildings().get(i))) {
-                for(int m = 0; m < parentActivity.getActiveBuildings().get(i).getBreakables().size();m++) {
-                    if(this.collidesWith(parentActivity.getActiveBuildings().get(i).getBreakables().get(m))){
-                        parentActivity.getActiveBuildings().get(i).getBreakables().get(m).hit();
-                        clearEntityModifiers();
-                        killMe();
+        life = life + pSecondsElapsed;
+        Log.v("InEagle", "Eagle update:" + this.toString());
+        if (life/duration >=.8 ) {
+            for (int i = 0; i < parentActivity.getActiveBuildings().size(); i++) {
+                Log.v("Counting Building loops", "Count:" + i);
+                if (this.collidesWith(parentActivity.getActiveBuildings().get(i))) {
+                    for (int m = 0; m < parentActivity.getActiveBuildings().get(i).getBreakables().size(); m++) {
+                        if (this.collidesWith(parentActivity.getActiveBuildings().get(i).getBreakables().get(m))) {
+                            if (!parentActivity.getActiveBuildings().get(i).getBreakables().get(m).isHit()) {
+                                if(!killed) {
+                                    parentActivity.getActiveBuildings().get(i).getBreakables().get(m).hit();
+                                    clearEntityModifiers();
+                                    killMe();
+                                }
+                            }
+                        }
                     }
+                    Log.v("CollidedWithBuilding", "hit building:" + parentActivity.getActiveBuildings().get(i).toString());
                 }
-                Log.v("CollidedWithBuilding","hit building:"+parentActivity.getActiveBuildings().get(i).toString() );
             }
         }
     }
 
+    @Override
+    public void onDetached(){
+        Log.v("Detach Eagle", "Exactly");
+        parentActivity.subtractEagle();
+    }
+
     private void killMe(){
-        parentActivity.addToList(this);
+        if(!killed) {
+            killed = true;
+            parentActivity.addToList(this);
+        }
     }
 
 }

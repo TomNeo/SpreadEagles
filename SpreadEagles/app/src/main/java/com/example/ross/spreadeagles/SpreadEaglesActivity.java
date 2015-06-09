@@ -3,6 +3,7 @@ package com.example.ross.spreadeagles;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.util.Log;
 
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.IUpdateHandler;
@@ -24,6 +25,7 @@ import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.util.adt.io.in.IInputStreamOpener;
+import org.andengine.util.adt.list.SmartList;
 import org.andengine.util.color.Color;
 import org.andengine.util.debug.Debug;
 
@@ -39,12 +41,15 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private final int CAMERA_HEIGHT = 480;
     private final int GAME_LENGTH = 2000;
 
+    private int currentNumOfEagles;
+    private int highestNumOfEagles;
+
     private Camera mCamera;
     private ZControlledScene mScene;
     private Background mBackground;
     private Crosshair mPlayer;
     private ArrayList<IEntity> trashBin;
-    private ArrayList<Building> buildingList;
+    private SmartList<Building> buildingList;
 
     private TiledTextureRegion PlayerRegion;
     private ITexture PlayerTexture, BlockTexture, CrosshairTexture, EaglesTexture;
@@ -59,7 +64,9 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     public SpreadEaglesActivity() {
         gameLength = GAME_LENGTH;
         trashBin = new ArrayList<IEntity>(0);
-        buildingList = new ArrayList<Building>(0);
+        buildingList = new SmartList<Building>(0);
+        currentNumOfEagles = 0;
+        highestNumOfEagles = 0;
     }
 
     public int getCAMERA_WIDTH(){
@@ -76,12 +83,38 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     }
 
     public void cleanUp(){
+        Log.v("TrashBin:", "Size " + trashBin.size());
         trashBin.trimToSize();
         for(int i = 0; i < trashBin.size(); i++){
             mScene.detachChild(trashBin.get(i));
+            trashBin.get(i).dispose();
         }
         trashBin.clear();
         trashBin.trimToSize();
+        Log.v("TrashBin:", "Size " + trashBin.size());
+    }
+
+    public void checkEagleMax(int current){
+        if (highestNumOfEagles < current)
+            highestNumOfEagles = current;
+    }
+
+    public void addEagle(){
+        currentNumOfEagles++;
+    }
+
+    public void subtractEagle(){
+        currentNumOfEagles--;
+    }
+
+    public boolean removeMe(Building deadBuilding){
+        boolean completed = false;
+        int index = buildingList.indexOf(deadBuilding);
+        if(index > -1){
+            completed = (deadBuilding == buildingList.remove(index));
+        }
+        Log.v("BuildingList","size: " + buildingList.size());
+        return completed;
     }
 
     public void addToList(IEntity entity){
@@ -209,7 +242,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                         WordTextBuffer.setScore(true);
                     }
                     mScene.attachChild(WordTextBuffer); */
-                    Building BuildingBuffer = new Building(CAMERA_WIDTH, ((CAMERA_HEIGHT*2/3)-(rand.nextInt(12)*20)),BlockRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
+                    Building BuildingBuffer = new Building(CAMERA_WIDTH, ((CAMERA_HEIGHT*2/3)-(rand.nextInt(10)*20)),BlockRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
                     addBuilding(BuildingBuffer);
                     mScene.attachChildWithZ(BuildingBuffer, -1);
                     attachBreakablesWithZ(BuildingBuffer.getBreakables(), 0);
@@ -223,9 +256,11 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                         myPrefs.edit().putBoolean("leftFinished", false).commit();
                     gameLength = GAME_LENGTH;
                     Intent intent = new Intent(SpreadEaglesActivity.this, Main.class);
+                    Log.v("Final max Eagles","" + highestNumOfEagles);
                     startActivity(intent);
                     finish();
                 }
+                checkEagleMax(currentNumOfEagles);
                 cleanUp();
             }
 
