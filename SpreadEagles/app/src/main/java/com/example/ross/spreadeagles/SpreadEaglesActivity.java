@@ -22,7 +22,6 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.bitmap.BitmapTexture;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
-import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.util.adt.io.in.IInputStreamOpener;
 import org.andengine.util.adt.list.SmartList;
@@ -37,9 +36,29 @@ import java.util.Random;
 
 public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
-    private final int CAMERA_WIDTH = 748;
-    private final int CAMERA_HEIGHT = 480;
-    private final int GAME_LENGTH = 2000;
+    /*****        This is my control panel for basically everything that is tweakable in the game so far.
+
+        I have a small list of considerations to keep in mind while setting these values:
+
+        --IF (BUILDING_HEIGHT_OPTIONS - 1) * BUILDING_HEIGHT_INTERVALS + FOOTER_SPACE >= MAXIMUM_BUILDING_HEIGHT YOU COULD END UP WITH BAD BUILDINGS
+        --MINIMUM_BUILDING_WIDTH must be less than MAXIMUM_BUILDING_WIDTH
+        --EAGLE_COLLISION should be less than 1. anything >= 1 will result in ALL eagles killing themselves without ever checking for collisions.
+
+     *****/
+
+    private final static int CAMERA_WIDTH = 748;
+    private final static int CAMERA_HEIGHT = 480;
+    private final static int GAME_LENGTH = 2800;   //In update cycles
+    private final static float EAGLE_SPEED = .25f;  // Furthest path takes n seconds, all others adjusted to this speed
+    private final static float EAGLE_COLLISION = .85f;   // percentage as a decimal. how far along path before collisions are checked must be less than 1 or else it will never check for collision.
+    private final static int INTERVAL_BETWEEN_BUILDINGS = 60; //counted in update cycles
+    private final static float BUILDING_SPEED = 2f;        //number of seconds it takes to move a building (and all it's breakables) across the screen.
+    private final static int BUILDING_HEIGHT_INTERVALS = 80;  //Determines how much to decrease Building heights by
+    private final static int BUILDING_HEIGHT_OPTIONS = 2;    //Maximum number of BUILDING_HEIGHT_INTERVALS to be subtracted from MAXIMUM_BUILDING_HEIGHT. Actual range is 0 -> (n - 1)
+    private final static float MAXIMUM_BUILDING_HEIGHT = CAMERA_HEIGHT * 5f/8f;
+    private final static float MINIMUM_BUILDING_WIDTH = 350;
+    private final static float MAXIMUM_BUILDING_WIDTH = 351;
+    private final static float FOOTER_SPACE = 80;           //distance from bottom of screen to bottom of buildings
 
     private int currentNumOfEagles;
     private int highestNumOfEagles;
@@ -51,8 +70,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private ArrayList<IEntity> trashBin;
     private SmartList<Building> buildingList;
 
-    private TiledTextureRegion PlayerRegion;
-    private ITexture PlayerTexture, BlockTexture, CrosshairTexture, EaglesTexture;
+    private ITexture BlockTexture, CrosshairTexture, EaglesTexture;
     private BitmapTextureAtlas mFontTexture;
     private Font mFont;
 
@@ -77,6 +95,17 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         return CAMERA_HEIGHT;
     }
 
+    public float getEAGLE_SPEED(){return EAGLE_SPEED;}
+
+    public float getEAGLE_COLLISION(){return EAGLE_COLLISION;}
+
+    public float getMINIMUM_BUILDING_WIDTH(){return MINIMUM_BUILDING_WIDTH;}
+
+    public float getMAXIMUM_BUILDING_WIDTH(){return MAXIMUM_BUILDING_WIDTH;}
+
+    public float getFOOTER_SPACE(){return FOOTER_SPACE;}
+
+    public float getBUILDING_SPEED(){return BUILDING_SPEED;}
 
     public Crosshair getPlayer(){
         return mPlayer;
@@ -197,7 +226,6 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         mScene.setBackground(mBackground);
 
         mPlayer = new Crosshair((CAMERA_WIDTH/4-32),(CAMERA_HEIGHT/1.5f-32),CrosshairRegion,getVertexBufferObjectManager(),this);
-        //mPlayer.animate(100, true);
 
         mScene.attachChildWithZ(mPlayer, 2);
 
@@ -207,8 +235,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                 Eagle EagleBuffer;
                 if (touchEvent.isActionDown()) {
                     mPlayer.setPosition(touchEvent.getX(), touchEvent.getY());
-                    EagleBuffer = new Eagle(CAMERA_WIDTH/2,CAMERA_HEIGHT,EaglesRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
-                    EagleBuffer.setMovements(touchEvent.getX(),touchEvent.getY());
+                    EagleBuffer = new Eagle(CAMERA_WIDTH/2,CAMERA_HEIGHT,EaglesRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this,touchEvent.getX(),touchEvent.getY());
                     mScene.attachChildWithZ(EagleBuffer,1);
                 }
                 return true;
@@ -219,7 +246,6 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
 
         mScene.registerUpdateHandler(new IUpdateHandler() {
-            int interval = 80;
             int count = 0;
             Random rand = new Random();
 
@@ -228,21 +254,9 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                 gameLength--;
                 count++;
 
-                if(count == interval){
+                if(count == INTERVAL_BETWEEN_BUILDINGS){
                     count = 0;
-                   /* WordText WordTextBuffer;
-                    if(rand.nextInt(2)==0){
-                        WordTextBuffer = new WordText(CAMERA_WIDTH,((CAMERA_HEIGHT*2/3)-(rand.nextInt(5)*40)),mFont,BadWords[rand.nextInt(BadWords.length-1)],getVertexBufferObjectManager(),SpreadEaglesActivity.this);
-                        WordTextBuffer.setColor(1,0,0,1);
-                        WordTextBuffer.setScore(false);
-
-                    }else{
-                        WordTextBuffer = new WordText(CAMERA_WIDTH,((CAMERA_HEIGHT*2/3)-(rand.nextInt(5)*40)),mFont,GoodWords[rand.nextInt(GoodWords.length-1)],getVertexBufferObjectManager(),SpreadEaglesActivity.this);
-                        WordTextBuffer.setColor(0,1,0,1);
-                        WordTextBuffer.setScore(true);
-                    }
-                    mScene.attachChild(WordTextBuffer); */
-                    Building BuildingBuffer = new Building(CAMERA_WIDTH, ((CAMERA_HEIGHT*2/3)-(rand.nextInt(10)*20)),BlockRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
+                    Building BuildingBuffer = new Building(CAMERA_WIDTH, (CAMERA_HEIGHT - MAXIMUM_BUILDING_HEIGHT + (rand.nextInt(BUILDING_HEIGHT_OPTIONS)*BUILDING_HEIGHT_INTERVALS)),BlockRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
                     addBuilding(BuildingBuffer);
                     mScene.attachChildWithZ(BuildingBuffer, -1);
                     attachBreakablesWithZ(BuildingBuffer.getBreakables(), 0);

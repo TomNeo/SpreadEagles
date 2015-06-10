@@ -47,8 +47,8 @@ public class Building extends Sprite {
 
         Random rand = new Random();
 
-        this.setWidth((1 + (1 / (1 + rand.nextInt(100)))) * 200);
-        this.setHeight((parentActivity.getCAMERA_HEIGHT() - this.getY()) - 48);
+        this.setWidth(rand.nextInt(Math.round(parentActivity.getMAXIMUM_BUILDING_WIDTH() - parentActivity.getMINIMUM_BUILDING_WIDTH())) + parentActivity.getMINIMUM_BUILDING_WIDTH());
+        this.setHeight((parentActivity.getCAMERA_HEIGHT() - this.getY()) - parentActivity.getFOOTER_SPACE());
         this.setColor(0, 1, 1, 1);
 
         float bufferWidth = this.getWidth()/4;
@@ -61,7 +61,7 @@ public class Building extends Sprite {
     }
 
     private void setMovements(){
-        MoveXModifier ModifierBuffer = new MoveXModifier(2,this.getX(),this.getX() - parentActivity.getCAMERA_WIDTH() - this.getWidth());
+        MoveXModifier ModifierBuffer = new MoveXModifier(parentActivity.getBUILDING_SPEED(),this.getX(),this.getX() - parentActivity.getCAMERA_WIDTH() - this.getWidth());
         ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
             @Override
             public void onModifierStarted(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
@@ -75,7 +75,7 @@ public class Building extends Sprite {
         });
         this.registerEntityModifier(ModifierBuffer);
         for(int i = 0; i < getBreakables().size(); i++){
-            ModifierBuffer = new MoveXModifier(2,getBreakables().get(i).getX(),getBreakables().get(i).getX() - parentActivity.getCAMERA_WIDTH() - this.getWidth());
+            ModifierBuffer = new MoveXModifier(parentActivity.getBUILDING_SPEED(),getBreakables().get(i).getX(),getBreakables().get(i).getX() - parentActivity.getCAMERA_WIDTH() - this.getWidth());
             ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
                 @Override
                 public void onModifierStarted(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
