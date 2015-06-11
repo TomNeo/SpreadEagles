@@ -48,25 +48,30 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     private final static int CAMERA_WIDTH = 748;
     private final static int CAMERA_HEIGHT = 480;
-    private final static int GAME_LENGTH = 2800;   //In update cycles
+    private final static int GAME_LENGTH = 46;   //in seconds
     private final static float EAGLE_SPEED = .25f;  // Furthest path takes n seconds, all others adjusted to this speed
     private final static float EAGLE_COLLISION = .85f;   // percentage as a decimal. how far along path before collisions are checked must be less than 1 or else it will never check for collision.
-    private final static int INTERVAL_BETWEEN_BUILDINGS = 60; //counted in update cycles
+    private final static float INTERVAL_BETWEEN_BUILDINGS = .8f; //counted in seconds
     private final static float BUILDING_SPEED = 2f;        //number of seconds it takes to move a building (and all it's breakables) across the screen.
-    private final static int BUILDING_HEIGHT_INTERVALS = 80;  //Determines how much to decrease Building heights by
+    private final static int BUILDING_HEIGHT_INTERVALS = 60;  //Determines how much to decrease Building heights by
     private final static int BUILDING_HEIGHT_OPTIONS = 2;    //Maximum number of BUILDING_HEIGHT_INTERVALS to be subtracted from MAXIMUM_BUILDING_HEIGHT. Actual range is 0 -> (n - 1)
-    private final static float MAXIMUM_BUILDING_HEIGHT = CAMERA_HEIGHT * 5f/8f;
-    private final static float MINIMUM_BUILDING_WIDTH = 350;
-    private final static float MAXIMUM_BUILDING_WIDTH = 351;
-    private final static float FOOTER_SPACE = 80;           //distance from bottom of screen to bottom of buildings
+    private final static float MAXIMUM_BUILDING_HEIGHT = CAMERA_HEIGHT/2;
+    private final static float MINIMUM_BUILDING_WIDTH = 240;
+    private final static float MAXIMUM_BUILDING_WIDTH = 280;
+    private final static float FOOTER_SPACE = 120;           //distance from bottom of screen to bottom of buildings
 
     private int currentNumOfEagles;
     private int highestNumOfEagles;
+    private int totalNumOfEagles;
+    private int totalHits;
+    private int totalBreakables;
+    private float life;
 
     private Camera mCamera;
     private ZControlledScene mScene;
     private Background mBackground;
     private Crosshair mPlayer;
+    private Eagle EagleBuffer;
     private ArrayList<IEntity> trashBin;
     private SmartList<Building> buildingList;
 
@@ -78,13 +83,24 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     SharedPreferences myPrefs;
     private ITextureRegion BlockRegion, CrosshairRegion, EaglesRegion;
+    private SmartList<Eagle> eagleList;
+    private boolean stopped;
+
 
     public SpreadEaglesActivity() {
         gameLength = GAME_LENGTH;
         trashBin = new ArrayList<IEntity>(0);
         buildingList = new SmartList<Building>(0);
+        eagleList = new SmartList<Eagle>(0);
         currentNumOfEagles = 0;
         highestNumOfEagles = 0;
+        totalNumOfEagles = 0;
+        totalHits = 0;
+        totalBreakables = 0;
+        life = 0;
+        stopped = false;
+
+        Log.v("TrashBin:","INITIALIZED");
     }
 
     public int getCAMERA_WIDTH(){
@@ -103,15 +119,13 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     public float getMAXIMUM_BUILDING_WIDTH(){return MAXIMUM_BUILDING_WIDTH;}
 
+    public void addHit(){totalHits++;}
+
     public float getFOOTER_SPACE(){return FOOTER_SPACE;}
 
     public float getBUILDING_SPEED(){return BUILDING_SPEED;}
 
-    public Crosshair getPlayer(){
-        return mPlayer;
-    }
-
-    public void cleanUp(){
+    private void cleanUp(){
         Log.v("TrashBin:", "Size " + trashBin.size());
         trashBin.trimToSize();
         for(int i = 0; i < trashBin.size(); i++){
@@ -120,7 +134,21 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         }
         trashBin.clear();
         trashBin.trimToSize();
-        Log.v("TrashBin:", "Size " + trashBin.size());
+    }
+
+    private void finalCleanUp(){
+        Log.v("eagleList", "FINAL CALLED");
+        Log.v("BuildingList", "FINAL CALLED");
+        for(int i = 0; i < eagleList.size(); i++){
+            eagleList.get(i).killMe();
+        }
+        for(int i = 0; i < buildingList.size(); i++){
+            buildingList.get(i).killBreakables();
+            buildingList.get(i).killMe();
+        }
+        Log.v("TrashBin:","FINAL CALLED");
+
+        cleanUp();
     }
 
     public void checkEagleMax(int current){
@@ -130,38 +158,56 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     public void addEagle(){
         currentNumOfEagles++;
+        totalNumOfEagles++;
     }
 
     public void subtractEagle(){
         currentNumOfEagles--;
     }
 
+    public ArrayList<Building> getActiveBuildings(){
+        buildingList.trimToSize();
+        return buildingList;
+    }
+    public void addBuilding(Building childBuilding){
+        buildingList.add(childBuilding);
+    }
     public boolean removeMe(Building deadBuilding){
         boolean completed = false;
         int index = buildingList.indexOf(deadBuilding);
-        if(index > -1){
+        if(index > -1) {
             completed = (deadBuilding == buildingList.remove(index));
         }
-        Log.v("BuildingList","size: " + buildingList.size());
+        Log.v("BuildingList", "size: " + buildingList.size());
         return completed;
     }
+
+    public void addEagleToList(Eagle childEagle){
+        eagleList.add(childEagle);
+        addEagle();
+    }
+    public boolean removeMe(Eagle deadEagle){
+        boolean completed = false;
+        int index = eagleList.indexOf(deadEagle);
+        if(index > -1){
+            completed = (deadEagle == eagleList.remove(index));
+        }
+        subtractEagle();
+        Log.v("eagleList", "size: " + eagleList.size());
+        return completed;
+    }
+
 
     public void addToList(IEntity entity){
         trashBin.add(entity);
     }
 
-    public ArrayList<Building> getActiveBuildings(){
-        buildingList.trimToSize();
-        return buildingList;
-    }
 
-    public void addBuilding(Building childBuilding){
-        buildingList.add(childBuilding);
-    }
 
     public void attachBreakablesWithZ(ArrayList<Breakables> listObj,int zDepth){
         for(int i = 0; i < listObj.size(); i++){
             mScene.attachChildWithZ(listObj.get(i), zDepth);
+            totalBreakables++;
         }
     }
 
@@ -232,7 +278,6 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         mScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
             @Override
             public boolean onSceneTouchEvent(Scene scene, TouchEvent touchEvent) {
-                Eagle EagleBuffer;
                 if (touchEvent.isActionDown()) {
                     mPlayer.setPosition(touchEvent.getX(), touchEvent.getY());
                     EagleBuffer = new Eagle(CAMERA_WIDTH/2,CAMERA_HEIGHT,EaglesRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this,touchEvent.getX(),touchEvent.getY());
@@ -246,36 +291,49 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
 
         mScene.registerUpdateHandler(new IUpdateHandler() {
-            int count = 0;
+            float count = 0;
+            int cycles = 0;
             Random rand = new Random();
 
             @Override
             public void onUpdate(float time){
-                gameLength--;
-                count++;
+                if(!stopped) {
+                    life = life + time;
+                    count = count + time;
+                    cycles++;
 
-                if(count == INTERVAL_BETWEEN_BUILDINGS){
-                    count = 0;
-                    Building BuildingBuffer = new Building(CAMERA_WIDTH, (CAMERA_HEIGHT - MAXIMUM_BUILDING_HEIGHT + (rand.nextInt(BUILDING_HEIGHT_OPTIONS)*BUILDING_HEIGHT_INTERVALS)),BlockRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
-                    addBuilding(BuildingBuffer);
-                    mScene.attachChildWithZ(BuildingBuffer, -1);
-                    attachBreakablesWithZ(BuildingBuffer.getBreakables(), 0);
-                }
+                    if (count >= INTERVAL_BETWEEN_BUILDINGS) {
+                        Log.v("FPS", " FPS: " + (cycles / count));
+                        count = 0;
+                        cycles = 0;
+                        Building BuildingBuffer = new Building(CAMERA_WIDTH, (CAMERA_HEIGHT - MAXIMUM_BUILDING_HEIGHT + (rand.nextInt(BUILDING_HEIGHT_OPTIONS) * BUILDING_HEIGHT_INTERVALS)), BlockRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
+                        addBuilding(BuildingBuffer);
+                        mScene.attachChildWithZ(BuildingBuffer, -1);
+                        attachBreakablesWithZ(BuildingBuffer.getBreakables(), 0);
+                    }
 
-                if(gameLength < 0) {
-                    //mPlayer.finalCount();
-                    if (true)
-                        myPrefs.edit().putBoolean("leftFinished", true).commit();
-                    else
-                        myPrefs.edit().putBoolean("leftFinished", false).commit();
-                    gameLength = GAME_LENGTH;
-                    Intent intent = new Intent(SpreadEaglesActivity.this, Main.class);
-                    Log.v("Final max Eagles","" + highestNumOfEagles);
-                    startActivity(intent);
-                    finish();
+                    if (gameLength - life <= 0) {
+                        if (true)
+                            myPrefs.edit().putBoolean("leftFinished", true).commit();
+                        else
+                            myPrefs.edit().putBoolean("leftFinished", false).commit();
+                        gameLength = GAME_LENGTH;
+                        Intent intent = new Intent(SpreadEaglesActivity.this, Main.class);
+                        Log.v("Final", " max Eagles: " + highestNumOfEagles);
+                        Log.v("Final", " Total Eagles: " + totalNumOfEagles);
+                        Log.v("Final", " Total Breakables: " + totalBreakables);
+                        Log.v("Final", " Total Hits: " + totalHits);
+                        finalCleanUp();
+                        startActivity(intent);
+                        finish();
+                        stopped = true;
+                    }
+                    Log.v("Time", " Total Time: " + life);
+                    checkEagleMax(currentNumOfEagles);
+                    cleanUp();
+                }else{
+                    Log.v("Stopped","Stopped");
                 }
-                checkEagleMax(currentNumOfEagles);
-                cleanUp();
             }
 
             @Override

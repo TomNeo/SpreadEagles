@@ -41,6 +41,7 @@ public class Breakables extends Sprite implements IEntity{
 
     public void hit(){
         hit = true;
+        parentActivity.addHit();
         this.setColor(0,1,0,1);
     }
 

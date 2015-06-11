@@ -28,7 +28,7 @@ public class Eagle extends Sprite {
         this.parentActivity  = pParent;
         DURATION = parentActivity.getEAGLE_SPEED();
         MAX_DISTANCE = (float)Math.sqrt(Math.pow(parentActivity.getCAMERA_HEIGHT(),2) + Math.pow(parentActivity.getCAMERA_WIDTH()/2,2));
-        parentActivity.addEagle();
+        parentActivity.addEagleToList(this);
         distance = (float)Math.sqrt(Math.pow(Math.abs(parentActivity.getCAMERA_WIDTH()/2 - destinationX),2) + Math.pow((parentActivity.getCAMERA_WIDTH()- destinationY),2));
         setMovements(destinationX,destinationY);
         this.setWidth(50);
@@ -58,7 +58,7 @@ public class Eagle extends Sprite {
         life = life + pSecondsElapsed;
         Log.v("InEagle", "Eagle update:" + this.toString());
         if (life/((distance/MAX_DISTANCE)*DURATION) >= parentActivity.getEAGLE_COLLISION() ) {
-            for (int i = 0; i < parentActivity.getActiveBuildings().size(); i++) {
+            building: for (int i = 0; i < parentActivity.getActiveBuildings().size(); i++) {
                 Log.v("Counting Building loops", "Count:" + i);
                 if (this.collidesWith(parentActivity.getActiveBuildings().get(i))) {
                     for (int m = 0; m < parentActivity.getActiveBuildings().get(i).getBreakables().size(); m++) {
@@ -69,6 +69,7 @@ public class Eagle extends Sprite {
                                     clearEntityModifiers();
                                     killMe();
                                 }
+                                break building;
                             }
                         }
                     }
@@ -84,10 +85,11 @@ public class Eagle extends Sprite {
         parentActivity.subtractEagle();
     }
 
-    private void killMe(){
+    public void killMe(){
         if(!killed) {
             killed = true;
             parentActivity.addToList(this);
+            Log.v("Remove", " Eagle - " + parentActivity.removeMe(this));
         }
     }
 

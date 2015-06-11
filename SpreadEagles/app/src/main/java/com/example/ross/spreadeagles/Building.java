@@ -95,11 +95,17 @@ public class Building extends Sprite {
         return breakableList;
     }
 
-    private void killMe(){
+    public void killBreakables(){
+        for(int i = 0; i < breakableList.size(); i++){
+            breakableList.get(i).killMe();
+        }
+    }
+
+    public void killMe(){
         if(!killed){
             killed = true;
             parentActivity.addToList(this);
-            Log.v("Remove", "" + parentActivity.removeMe(this));
+            Log.v("Remove", "Building - " + parentActivity.removeMe(this));
         }
     }
 }
