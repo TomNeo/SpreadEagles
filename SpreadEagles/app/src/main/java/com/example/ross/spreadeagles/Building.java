@@ -4,7 +4,6 @@ import android.util.Log;
 
 import org.andengine.entity.IEntity;
 import org.andengine.entity.modifier.MoveXModifier;
-import org.andengine.entity.sprite.Sprite;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.modifier.IModifier;
@@ -16,7 +15,7 @@ import java.util.Random;
  * Created by Ross on 5/30/2015.
  */
 
-public class Building extends Sprite {
+public class Building extends HeinousEntity {
 
     private SpreadEaglesActivity parentActivity;
     private boolean score;
@@ -107,5 +106,11 @@ public class Building extends Sprite {
             parentActivity.addToList(this);
             Log.v("Remove", "Building - " + parentActivity.removeMe(this));
         }
+    }
+
+    @Override
+    public void recycleMe() {
+        detachSelf();
+        dispose();
     }
 }

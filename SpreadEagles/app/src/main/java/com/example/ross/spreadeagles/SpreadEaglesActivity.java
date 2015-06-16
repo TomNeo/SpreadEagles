@@ -10,7 +10,6 @@ import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
-import org.andengine.entity.IEntity;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
@@ -59,6 +58,9 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private final static float MINIMUM_BUILDING_WIDTH = 240;
     private final static float MAXIMUM_BUILDING_WIDTH = 280;
     private final static float FOOTER_SPACE = 120;           //distance from bottom of screen to bottom of buildings
+    private final static int MAX_NUMBER_EAGLES = 6;
+    private final static int MAX_NUMBER_BUILDINGS = 3;
+    private final static int MAX_NUMBER_BREAKABLES = 10;
 
     private int currentNumOfEagles;
     private int highestNumOfEagles;
@@ -71,9 +73,12 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private ZControlledScene mScene;
     private Background mBackground;
     private Crosshair mPlayer;
-    private Eagle EagleBuffer;
-    private ArrayList<IEntity> trashBin;
+    private Eagle[] Eagles;
+    private Building[] Buildings;
+    private Breakables[] Breakables;
+    private ArrayList<HeinousEntity> trashBin;
     private SmartList<Building> buildingList;
+    private SmartList<Breakables> breakablesList;
 
     private ITexture BlockTexture, CrosshairTexture, EaglesTexture;
     private BitmapTextureAtlas mFontTexture;
@@ -89,9 +94,13 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     public SpreadEaglesActivity() {
         gameLength = GAME_LENGTH;
-        trashBin = new ArrayList<IEntity>(0);
+        trashBin = new ArrayList<HeinousEntity>(0);
         buildingList = new SmartList<Building>(0);
         eagleList = new SmartList<Eagle>(0);
+        breakablesList = new SmartList<Breakables>(0);
+        Eagles = new Eagle[MAX_NUMBER_EAGLES];
+        //Buildings = new Building[MAX_NUMBER_BUILDINGS];
+        //Breakables = new Breakables[MAX_NUMBER_BREAKABLES];
         currentNumOfEagles = 0;
         highestNumOfEagles = 0;
         totalNumOfEagles = 0;
@@ -101,6 +110,45 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         stopped = false;
 
         Log.v("TrashBin:","INITIALIZED");
+    }
+
+    private void populateEagles(int count){
+        Log.v("Gen-Ea","" + Eagles.length);
+        for(int i = 0; i < Eagles.length; i++){
+            Eagles[i] = new Eagle(CAMERA_WIDTH/2,CAMERA_HEIGHT,EaglesRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
+            Eagles[i].setAddress(i);
+            Log.v("Gen-Ea", "Eagle:" + Eagles[i].getAddress());
+        }
+    }
+
+    private Building[] populateBuildings(int count){
+        Building[] arrayBuffer = new Building[count];
+        for(int i = 0; i < arrayBuffer.length; i++){
+            arrayBuffer[i] = new Building(CAMERA_WIDTH/2,CAMERA_HEIGHT,BlockRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
+            arrayBuffer[i].setAddress(i);
+            Log.v("Gen-Bu", "Building:" + arrayBuffer[i].getAddress());
+        }
+        return arrayBuffer;
+    }
+
+    private Breakables[] populateBreakables(int count){
+        Breakables[] arrayBuffer = new Breakables[count];
+        for(int i = 0; i < arrayBuffer.length; i++){
+            arrayBuffer[i] = new Breakables(CAMERA_WIDTH/2,CAMERA_HEIGHT,BlockRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
+            arrayBuffer[i].setAddress(i);
+            Log.v("Gen-Br","Breakable:" + arrayBuffer[i].getAddress());
+        }
+        return arrayBuffer;
+    }
+
+    private Eagle getUnusedEagle(){
+        for (int i = 0; i < Eagles.length;i++){
+            if(!Eagles[i].isInUse()){
+                return Eagles[i];
+            }
+        }
+        Log.v("Not found","no eagle found");
+        return null;
     }
 
     public int getCAMERA_WIDTH(){
@@ -129,8 +177,9 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         Log.v("TrashBin:", "Size " + trashBin.size());
         trashBin.trimToSize();
         for(int i = 0; i < trashBin.size(); i++){
-            mScene.detachChild(trashBin.get(i));
-            trashBin.get(i).dispose();
+            Log.v("specific loop","start " + i);
+            trashBin.get(i).recycleMe();
+            Log.v("specific loop", "passed " + i);
         }
         trashBin.clear();
         trashBin.trimToSize();
@@ -198,8 +247,9 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     }
 
 
-    public void addToList(IEntity entity){
+    public void addToList(HeinousEntity entity){
         trashBin.add(entity);
+        Log.v("Added Trash", "object:" + entity.toString() + " " + entity.address);
     }
 
 
@@ -260,6 +310,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
         this.mEngine.getTextureManager().loadTexture(this.mFontTexture);
         this.getFontManager().loadFont(this.mFont);
+        populateEagles(MAX_NUMBER_EAGLES);
     }
 
       @Override
@@ -280,8 +331,11 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             public boolean onSceneTouchEvent(Scene scene, TouchEvent touchEvent) {
                 if (touchEvent.isActionDown()) {
                     mPlayer.setPosition(touchEvent.getX(), touchEvent.getY());
-                    EagleBuffer = new Eagle(CAMERA_WIDTH/2,CAMERA_HEIGHT,EaglesRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this,touchEvent.getX(),touchEvent.getY());
-                    mScene.attachChildWithZ(EagleBuffer,1);
+                    Log.v("get eagle", "Before");
+                    Eagle eagleBuffer = getUnusedEagle();
+                    eagleBuffer.useEagle(touchEvent.getX(), touchEvent.getY());
+                    Log.v("get eagle", "after address:" + eagleBuffer.getAddress());
+                    mScene.attachChildWithZ(eagleBuffer,1);
                 }
                 return true;
             }

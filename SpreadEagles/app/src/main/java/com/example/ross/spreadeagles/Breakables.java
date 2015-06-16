@@ -1,22 +1,19 @@
 package com.example.ross.spreadeagles;
 
-import org.andengine.entity.IEntity;
-import org.andengine.entity.sprite.Sprite;
 import org.andengine.opengl.texture.region.ITextureRegion;
-import org.andengine.opengl.vbo.DrawType;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 /**
  * Created by Ross on 5/30/2015.
  */
-public class Breakables extends Sprite implements IEntity{
+public class Breakables extends HeinousEntity{
 
     private SpreadEaglesActivity parentActivity;
     private boolean hit;
     private boolean killed;
 
     public Breakables(float pX, float pY, ITextureRegion pTextureRegion, VertexBufferObjectManager pVertexBufferObjectManager, SpreadEaglesActivity pParent) {
-        super(pX, pY, pTextureRegion.getWidth(), pTextureRegion.getHeight(), pTextureRegion, pVertexBufferObjectManager, DrawType.STATIC);
+        super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
         this.parentActivity  = pParent;
         this.setColor(1,0,0,1);
         hit = false;
@@ -43,6 +40,12 @@ public class Breakables extends Sprite implements IEntity{
         hit = true;
         parentActivity.addHit();
         this.setColor(0,1,0,1);
+    }
+
+    @Override
+    public void recycleMe() {
+        detachSelf();
+        dispose();
     }
 
 }

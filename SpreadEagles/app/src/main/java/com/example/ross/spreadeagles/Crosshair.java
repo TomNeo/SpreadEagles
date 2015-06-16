@@ -1,6 +1,5 @@
 package com.example.ross.spreadeagles;
 
-import org.andengine.entity.sprite.Sprite;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
@@ -10,7 +9,7 @@ import java.util.Random;
  * Created by Ross on 5/30/2015.
  */
 
-public class Crosshair extends Sprite {
+public class Crosshair extends HeinousEntity {
 
     private SpreadEaglesActivity parentActivity;
     private boolean score;
@@ -46,5 +45,10 @@ public class Crosshair extends Sprite {
 
     private void killMe(){
         parentActivity.addToList(this);
+    }
+
+    @Override
+    public void recycleMe() {
+
     }
 }
