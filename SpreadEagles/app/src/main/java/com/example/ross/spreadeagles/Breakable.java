@@ -27,6 +27,7 @@ public class Breakable extends HeinousEntity{
 
     public void useBreakable(float x, float y, float width, float height){
         this.setInUse(true);
+        killed = false;
         setPosition(x, y);
         setHeight(height);
         setWidth(width);
@@ -69,11 +70,10 @@ public class Breakable extends HeinousEntity{
     @Override
     public void recycleMe() {
         Log.v("Break-Recycle", "Called");
-        this.setPosition(parentActivity.getCAMERA_WIDTH() / 2, parentActivity.getCAMERA_HEIGHT());
+        this.setPosition(SpreadEaglesActivity.CAMERA_WIDTH / 2, SpreadEaglesActivity.CAMERA_HEIGHT);
         this.setVisible(false);
         this.setColor(1,0,0,1);
         hit = false;
-        killed = false;
         Log.v("Break-Recycle", "detached:" + this.detachSelf() + " and parent:" + this.getParent());
         this.setInUse(false);
     }
