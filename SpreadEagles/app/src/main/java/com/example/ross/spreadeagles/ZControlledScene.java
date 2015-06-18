@@ -1,7 +1,6 @@
 package com.example.ross.spreadeagles;
 
-import android.util.Log;
-
+import org.andengine.entity.IEntity;
 import org.andengine.entity.scene.Scene;
 
 /**
@@ -13,10 +12,8 @@ public class ZControlledScene extends Scene {
         super();
     }
 
-    public void attachChildWithZ(HeinousEntity pEntity, int Zdepth){
-        Log.v("pre attached","" + pEntity.toString() + pEntity.address);
+    public void attachChildWithZ(IEntity pEntity, int Zdepth){
         this.attachChild(pEntity);
-        Log.v("post attached", "" + pEntity.toString());
         pEntity.setZIndex(Zdepth);
         this.sortChildren();
     }

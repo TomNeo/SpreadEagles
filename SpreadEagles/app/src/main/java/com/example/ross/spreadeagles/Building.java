@@ -19,29 +19,51 @@ public class Building extends HeinousEntity {
 
     private SpreadEaglesActivity parentActivity;
     private boolean score;
-    private ArrayList<Breakables> breakableList;
-    private ITextureRegion blockTexture;
+    private ArrayList<Breakable> breakableList;
     private boolean killed;
+    Breakable bufferBreakable;
 
     public Building(float pX, float pY, ITextureRegion pTextureRegion, VertexBufferObjectManager pVertexBufferObjectManager, SpreadEaglesActivity activity) {
         super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
         parentActivity = activity;
-        blockTexture = pTextureRegion;
         killed = false;
-        breakableList = new ArrayList<Breakables>(0);
-        setProperties();
-        setMovements();
+        breakableList = new ArrayList<Breakable>(0);
+        //setProperties();
+        //setMovements();
     }
 
-    public Breakables addBreakable(float pX,float pY, float width, float height, ITextureRegion img) {
+    public Breakable addBreakable(float pX,float pY, float width, float height) {
         Log.v("Breakable", pX + ":" + pY);
-        Breakables bufferBreakable = new Breakables(pX,pY,img,parentActivity.getVertexBufferObjectManager(),parentActivity);
-        bufferBreakable.setHeight(height);
-        bufferBreakable.setWidth(width);
+        bufferBreakable = parentActivity.getUnusedBreakable(); //new Breakable(pX,pY,img,parentActivity.getVertexBufferObjectManager(),parentActivity); //parentActivity.getUnusedBreakable();
+        bufferBreakable.useBreakable(pX,pY,width,height);
         breakableList.add(bufferBreakable);
         return bufferBreakable;
     }
 
+    public void useBuilding(float x, float y){
+        this.setInUse(true);
+        this.setPosition(x, y);
+        setVisible(true);
+        parentActivity.addBuilding(this);
+        Log.v("Bu-Used", "Building address" + address);
+        setProperties();
+        setMovements();
+        parentActivity.attachEntityWithZ(this,parentActivity.BUILDING_Z_DEPTH);
+    }
+/*
+    public void useBuilding(float x, float y, float width, float height){
+        this.setInUse(true);
+        setVisible(true);
+        parentActivity.addBuilding(this);
+        this.setPosition(x,y);
+        this.setWidth(width);
+        this.setHeight(height);
+    }
+
+    public void useBuilding(int type){
+
+    }
+*/
     private void setProperties(){
 
         Random rand = new Random();
@@ -54,8 +76,8 @@ public class Building extends HeinousEntity {
         float bufferHeight = this.getHeight()/4;
 
 
-        Breakables door = this.addBreakable(this.getX() + rand.nextInt((int)(this.getWidth() - bufferWidth)),this.getY() + this.getHeight()/2 + rand.nextInt((int)(this.getHeight()/2 - bufferHeight)) ,bufferWidth,bufferHeight,blockTexture);
-        Breakables window = this.addBreakable(this.getX() + rand.nextInt((int)(this.getWidth() - bufferWidth)),this.getY() + rand.nextInt((int)(this.getHeight()/2 - bufferHeight)),bufferWidth,bufferHeight,blockTexture);
+        Breakable door = this.addBreakable(this.getX() + rand.nextInt((int)(this.getWidth() - bufferWidth)),this.getY() + this.getHeight()/2 + rand.nextInt((int)(this.getHeight()/2 - bufferHeight)) ,bufferWidth,bufferHeight);
+        Breakable window = this.addBreakable(this.getX() + rand.nextInt((int)(this.getWidth() - bufferWidth)),this.getY() + rand.nextInt((int)(this.getHeight()/2 - bufferHeight)),bufferWidth,bufferHeight);
 
     }
 
@@ -75,21 +97,12 @@ public class Building extends HeinousEntity {
         this.registerEntityModifier(ModifierBuffer);
         for(int i = 0; i < getBreakables().size(); i++){
             ModifierBuffer = new MoveXModifier(parentActivity.getBUILDING_SPEED(),getBreakables().get(i).getX(),getBreakables().get(i).getX() - parentActivity.getCAMERA_WIDTH() - this.getWidth());
-            ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
-                @Override
-                public void onModifierStarted(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
-                }
-                @Override
-                public void onModifierFinished(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
-                    iEntity.onDetached();
-                }
-            });
-            getBreakables().get(i).registerEntityModifier(ModifierBuffer);
+            getBreakables().get(i).setMovements(ModifierBuffer);
         }
 
     }
 
-    public ArrayList<Breakables> getBreakables(){
+    public ArrayList<Breakable> getBreakables(){
         breakableList.trimToSize();
         return breakableList;
     }
@@ -103,14 +116,20 @@ public class Building extends HeinousEntity {
     public void killMe(){
         if(!killed){
             killed = true;
-            parentActivity.addToList(this);
+            parentActivity.addToRecycleList(this);
             Log.v("Remove", "Building - " + parentActivity.removeMe(this));
         }
     }
 
     @Override
     public void recycleMe() {
-        detachSelf();
-        dispose();
+        Log.v("Build-Recycle","Called");
+        this.setPosition(parentActivity.getCAMERA_WIDTH() / 2, parentActivity.getCAMERA_HEIGHT());
+        this.setVisible(false);
+        breakableList.clear();
+        breakableList.trimToSize();
+        killed = false;
+        Log.v("Build-Recycle", "detached:" + this.detachSelf() + " and parent:" + this.getParent() + " and breakableList: " + breakableList.size());
+        this.setInUse(false);
     }
 }

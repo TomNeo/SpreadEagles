@@ -54,6 +54,7 @@ public class Eagle extends HeinousEntity {
         life = 0;
         parentActivity.addEagleToList(this);
         distance = (float)Math.sqrt(Math.pow(Math.abs(parentActivity.getCAMERA_WIDTH()/2 - destinationX),2) + Math.pow((parentActivity.getCAMERA_WIDTH()- destinationY),2));
+        parentActivity.attachEntityWithZ(this,parentActivity.EAGLE_Z_DEPTH);
         setMovements(destinationX, destinationY);
         Log.v("Ea-Used","Eagle address" + address);
     }
@@ -114,7 +115,7 @@ public class Eagle extends HeinousEntity {
     public void killMe(){
         if(!killed) {
             killed = true;
-            parentActivity.addToList(this);
+            parentActivity.addToRecycleList(this);
             Log.v("Remove", " Eagle - " + parentActivity.removeMe(this));
         }
     }

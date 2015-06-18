@@ -3,8 +3,6 @@ package com.example.ross.spreadeagles;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
-import java.util.Random;
-
 /**
  * Created by Ross on 5/30/2015.
  */
@@ -22,8 +20,6 @@ public class Crosshair extends HeinousEntity {
     }
 
     private void setProperties(){
-
-        Random rand = new Random();
 
         this.setWidth(50);
         this.setHeight(50);
@@ -44,7 +40,7 @@ public class Crosshair extends HeinousEntity {
     }
 
     private void killMe(){
-        parentActivity.addToList(this);
+        parentActivity.addToRecycleList(this);
     }
 
     @Override

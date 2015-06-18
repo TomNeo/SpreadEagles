@@ -10,6 +10,7 @@ import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
+import org.andengine.entity.IEntity;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
@@ -59,8 +60,13 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private final static float MAXIMUM_BUILDING_WIDTH = 280;
     private final static float FOOTER_SPACE = 120;           //distance from bottom of screen to bottom of buildings
     private final static int MAX_NUMBER_EAGLES = 6;
-    private final static int MAX_NUMBER_BUILDINGS = 3;
+    private final static int MAX_NUMBER_BUILDINGS = 4;
     private final static int MAX_NUMBER_BREAKABLES = 10;
+
+    public final static int CROSSHAIR_Z_DEPTH = 2;
+    public final static int EAGLE_Z_DEPTH = 1;
+    public final static int BREAKABLE_Z_DEPTH = 0;
+    public final static int BUILDING_Z_DEPTH = -1;
 
     private int currentNumOfEagles;
     private int highestNumOfEagles;
@@ -75,10 +81,10 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private Crosshair mPlayer;
     private Eagle[] Eagles;
     private Building[] Buildings;
-    private Breakables[] Breakables;
-    private ArrayList<HeinousEntity> trashBin;
+    private Breakable[] Breakables;
+    private ArrayList<HeinousEntity> recycleBin;
     private SmartList<Building> buildingList;
-    private SmartList<Breakables> breakablesList;
+    private SmartList<Breakable> breakableList;
 
     private ITexture BlockTexture, CrosshairTexture, EaglesTexture;
     private BitmapTextureAtlas mFontTexture;
@@ -94,13 +100,13 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     public SpreadEaglesActivity() {
         gameLength = GAME_LENGTH;
-        trashBin = new ArrayList<HeinousEntity>(0);
+        recycleBin = new ArrayList<HeinousEntity>(0);
         buildingList = new SmartList<Building>(0);
         eagleList = new SmartList<Eagle>(0);
-        breakablesList = new SmartList<Breakables>(0);
+        breakableList = new SmartList<Breakable>(0);
         Eagles = new Eagle[MAX_NUMBER_EAGLES];
-        //Buildings = new Building[MAX_NUMBER_BUILDINGS];
-        //Breakables = new Breakables[MAX_NUMBER_BREAKABLES];
+        Buildings = new Building[MAX_NUMBER_BUILDINGS];
+        Breakables = new Breakable[MAX_NUMBER_BREAKABLES];
         currentNumOfEagles = 0;
         highestNumOfEagles = 0;
         totalNumOfEagles = 0;
@@ -113,7 +119,6 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     }
 
     private void populateEagles(int count){
-        Log.v("Gen-Ea","" + Eagles.length);
         for(int i = 0; i < Eagles.length; i++){
             Eagles[i] = new Eagle(CAMERA_WIDTH/2,CAMERA_HEIGHT,EaglesRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
             Eagles[i].setAddress(i);
@@ -121,24 +126,20 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         }
     }
 
-    private Building[] populateBuildings(int count){
-        Building[] arrayBuffer = new Building[count];
-        for(int i = 0; i < arrayBuffer.length; i++){
-            arrayBuffer[i] = new Building(CAMERA_WIDTH/2,CAMERA_HEIGHT,BlockRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
-            arrayBuffer[i].setAddress(i);
-            Log.v("Gen-Bu", "Building:" + arrayBuffer[i].getAddress());
+    private void populateBuildings(int count){
+        for(int i = 0; i < Buildings.length; i++){
+            Buildings[i] = new Building(CAMERA_WIDTH/2,CAMERA_HEIGHT,BlockRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
+            Buildings[i].setAddress(i);
+            Log.v("Gen-Bu", "Building:" + Buildings[i].getAddress());
         }
-        return arrayBuffer;
     }
 
-    private Breakables[] populateBreakables(int count){
-        Breakables[] arrayBuffer = new Breakables[count];
-        for(int i = 0; i < arrayBuffer.length; i++){
-            arrayBuffer[i] = new Breakables(CAMERA_WIDTH/2,CAMERA_HEIGHT,BlockRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
-            arrayBuffer[i].setAddress(i);
-            Log.v("Gen-Br","Breakable:" + arrayBuffer[i].getAddress());
+    private void populateBreakables(int count){
+       for(int i = 0; i < Breakables.length; i++){
+            Breakables[i] = new Breakable(CAMERA_WIDTH/2,CAMERA_HEIGHT,BlockRegion,getVertexBufferObjectManager(),SpreadEaglesActivity.this);
+            Breakables[i].setAddress(i);
+            Log.v("Gen-Br","Breakable:" + Breakables[i].getAddress());
         }
-        return arrayBuffer;
     }
 
     private Eagle getUnusedEagle(){
@@ -148,6 +149,26 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             }
         }
         Log.v("Not found","no eagle found");
+        return null;
+    }
+
+    private Building getUnusedBuilding(){
+        for (int i = 0; i < Buildings.length;i++){
+            if(!Buildings[i].isInUse()){
+                return Buildings[i];
+            }
+        }
+        Log.v("Not found","no building found");
+        return null;
+    }
+
+    public Breakable getUnusedBreakable(){
+        for (int i = 0; i < Breakables.length;i++){
+            if(!Breakables[i].isInUse()){
+                return Breakables[i];
+            }
+        }
+        Log.v("Not found","no building found");
         return null;
     }
 
@@ -174,15 +195,15 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     public float getBUILDING_SPEED(){return BUILDING_SPEED;}
 
     private void cleanUp(){
-        Log.v("TrashBin:", "Size " + trashBin.size());
-        trashBin.trimToSize();
-        for(int i = 0; i < trashBin.size(); i++){
+        Log.v("TrashBin:", "Size " + recycleBin.size());
+        recycleBin.trimToSize();
+        for(int i = 0; i < recycleBin.size(); i++){
             Log.v("specific loop","start " + i);
-            trashBin.get(i).recycleMe();
+            recycleBin.get(i).recycleMe();
             Log.v("specific loop", "passed " + i);
         }
-        trashBin.clear();
-        trashBin.trimToSize();
+        recycleBin.clear();
+        recycleBin.trimToSize();
     }
 
     private void finalCleanUp(){
@@ -192,7 +213,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             eagleList.get(i).killMe();
         }
         for(int i = 0; i < buildingList.size(); i++){
-            buildingList.get(i).killBreakables();
+            //buildingList.get(i).killBreakables();
             buildingList.get(i).killMe();
         }
         Log.v("TrashBin:","FINAL CALLED");
@@ -247,18 +268,15 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     }
 
 
-    public void addToList(HeinousEntity entity){
-        trashBin.add(entity);
+    public void addToRecycleList(HeinousEntity entity){
+        recycleBin.add(entity);
         Log.v("Added Trash", "object:" + entity.toString() + " " + entity.address);
     }
 
 
 
-    public void attachBreakablesWithZ(ArrayList<Breakables> listObj,int zDepth){
-        for(int i = 0; i < listObj.size(); i++){
-            mScene.attachChildWithZ(listObj.get(i), zDepth);
-            totalBreakables++;
-        }
+    public void attachEntityWithZ(IEntity pEntity,int zDepth){
+            mScene.attachChildWithZ(pEntity, zDepth);
     }
 
     @Override
@@ -311,6 +329,8 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         this.mEngine.getTextureManager().loadTexture(this.mFontTexture);
         this.getFontManager().loadFont(this.mFont);
         populateEagles(MAX_NUMBER_EAGLES);
+        populateBuildings(MAX_NUMBER_BUILDINGS);
+        populateBreakables(MAX_NUMBER_BREAKABLES);
     }
 
       @Override
@@ -324,7 +344,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
         mPlayer = new Crosshair((CAMERA_WIDTH/4-32),(CAMERA_HEIGHT/1.5f-32),CrosshairRegion,getVertexBufferObjectManager(),this);
 
-        mScene.attachChildWithZ(mPlayer, 2);
+        attachEntityWithZ(mPlayer, CROSSHAIR_Z_DEPTH);
 
         mScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
             @Override
@@ -335,7 +355,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                     Eagle eagleBuffer = getUnusedEagle();
                     eagleBuffer.useEagle(touchEvent.getX(), touchEvent.getY());
                     Log.v("get eagle", "after address:" + eagleBuffer.getAddress());
-                    mScene.attachChildWithZ(eagleBuffer,1);
+                    //mScene.attachChildWithZ(eagleBuffer,1);
                 }
                 return true;
             }
@@ -360,10 +380,10 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                         Log.v("FPS", " FPS: " + (cycles / count));
                         count = 0;
                         cycles = 0;
-                        Building BuildingBuffer = new Building(CAMERA_WIDTH, (CAMERA_HEIGHT - MAXIMUM_BUILDING_HEIGHT + (rand.nextInt(BUILDING_HEIGHT_OPTIONS) * BUILDING_HEIGHT_INTERVALS)), BlockRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
-                        addBuilding(BuildingBuffer);
-                        mScene.attachChildWithZ(BuildingBuffer, -1);
-                        attachBreakablesWithZ(BuildingBuffer.getBreakables(), 0);
+                        Building BuildingBuffer = getUnusedBuilding();//new Building(CAMERA_WIDTH, (CAMERA_HEIGHT - MAXIMUM_BUILDING_HEIGHT + (rand.nextInt(BUILDING_HEIGHT_OPTIONS) * BUILDING_HEIGHT_INTERVALS)), BlockRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
+                        BuildingBuffer.useBuilding(CAMERA_WIDTH, (CAMERA_HEIGHT - MAXIMUM_BUILDING_HEIGHT + (rand.nextInt(BUILDING_HEIGHT_OPTIONS) * BUILDING_HEIGHT_INTERVALS)));
+                        //mScene.attachChildWithZ(BuildingBuffer, -1);
+
                     }
 
                     if (gameLength - life <= 0) {
@@ -377,7 +397,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                         Log.v("Final", " Total Eagles: " + totalNumOfEagles);
                         Log.v("Final", " Total Breakables: " + totalBreakables);
                         Log.v("Final", " Total Hits: " + totalHits);
-                        finalCleanUp();
+                        //finalCleanUp();
                         startActivity(intent);
                         finish();
                         stopped = true;
