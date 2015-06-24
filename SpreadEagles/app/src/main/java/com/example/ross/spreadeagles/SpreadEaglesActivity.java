@@ -37,34 +37,33 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     /**
      * **        This is my control panel for basically everything that is tweakable in the game so far.
-     * <p/>
+     *
      * I have a small list of considerations to keep in mind while setting these values:
-     * <p/>
-     * --IF (BUILDING_HEIGHT_OPTIONS - 1) * BUILDING_HEIGHT_INTERVALS + FOOTER_SPACE >= MAXIMUM_BUILDING_HEIGHT YOU COULD END UP WITH BAD BUILDINGS
-     * --MINIMUM_BUILDING_WIDTH must be less than MAXIMUM_BUILDING_WIDTH
+     *
      * --EAGLE_COLLISION should be less than 1. anything >= 1 will result in ALL eagles killing themselves without ever checking for collisions.
-     * <p/>
+     * --INTERVAL_BETWEEN_BUILDINGS gets offset during runtime to control even spacing between different random building widths
+     *
      * ***
      */
     public final static int MAX_NUMBER_EAGLES = 6;
     public final static int MAX_NUMBER_BUILDINGS = 4;
-    public final static int MAX_NUMBER_BREAKABLES = 10;
+    public final static int MAX_NUMBER_BREAKABLES = 16;
 
     public final static int CAMERA_WIDTH = 748;
     public final static int CAMERA_HEIGHT = 480;
     public final static int GAME_LENGTH = 46;   //in seconds
+    public final static float EAGLE_HEIGHT = 30f;
+    public final static float EAGLE_WIDTH = 30f;
+    public final static float CROSSHAIR_HEIGHT = 30f;
+    public final static float CROSSHAIR_WIDTH = 30f;
     public final static float EAGLE_SPEED = .25f;  // Furthest path takes n seconds, all others adjusted to this speed
-    public final static float EAGLE_COLLISION = .85f;   // percentage as a decimal. how far along path before collisions are checked must be less than 1 or else it will never check for collision.
+    public final static float EAGLE_COLLISION = .9f;   // percentage as a decimal. how far along path before collisions are checked must be less than 1 or else it will never check for collision.
     public final static float INTERVAL_BETWEEN_BUILDINGS = .8f; //counted in seconds
-    public final static float BUILDING_SPEED = 2f;        //number of seconds it takes to move a building (and all it's breakables) across the screen.
-    public final static int BUILDING_HEIGHT_INTERVALS = 60;  //Determines how much to decrease Building heights by
-    public final static int BUILDING_HEIGHT_OPTIONS = 2;    //Maximum number of BUILDING_HEIGHT_INTERVALS to be subtracted from MAXIMUM_BUILDING_HEIGHT. Actual range is 0 -> (n - 1)
-    public final static float MAXIMUM_BUILDING_HEIGHT = CAMERA_HEIGHT / 2;
-    public final static float MINIMUM_BUILDING_WIDTH = 240;
-    public final static float MAXIMUM_BUILDING_WIDTH = 280;
+    public final static float BUILDING_SPEED = 2f;        //number of seconds it takes to the BUILDING_WIDTH_STANDARD (and all it's breakables) across the screen.
+    public final static float BUILDING_WIDTH_STANDARD = 250; //Used on the switch case default for building types, and sets the base speed for all buildings
     public final static float FOOTER_SPACE = 120;           //distance from bottom of screen to bottom of buildings
+    public final static float BUILDING_VELOCITY = (CAMERA_WIDTH + BUILDING_WIDTH_STANDARD)/BUILDING_SPEED; //calculated so we can adjust other settings and not have to redo the algebra
 
-    
     /*Higher numbers will appear on top of lower numbers*/
 
     public final static int CROSSHAIR_Z_DEPTH = 2;
@@ -298,6 +297,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         mScene.registerUpdateHandler(new IUpdateHandler() {
             float count = 0;
             int cycles = 0;
+            float offset = 0;
             Random rand = new Random();
 
             @Override
@@ -306,12 +306,12 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                     life = life + time;
                     count = count + time;
                     cycles++;
-                    if (count >= INTERVAL_BETWEEN_BUILDINGS) {
+                    if (count >= INTERVAL_BETWEEN_BUILDINGS + offset) {
                         Log.v("FPS", " FPS: " + (cycles / count));
                         count = 0;
                         cycles = 0;
                         Building BuildingBuffer = getUnusedBuilding();
-                        BuildingBuffer.useBuilding(CAMERA_WIDTH, (CAMERA_HEIGHT - MAXIMUM_BUILDING_HEIGHT + (rand.nextInt(BUILDING_HEIGHT_OPTIONS) * BUILDING_HEIGHT_INTERVALS)));
+                        offset = BuildingBuffer.useBuilding(CAMERA_WIDTH, CAMERA_HEIGHT - FOOTER_SPACE,rand.nextInt(3));
                     }
 
                     if (gameLength - life <= 0) {

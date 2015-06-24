@@ -8,7 +8,6 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.modifier.IModifier;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -18,7 +17,6 @@ import java.util.Random;
 public class Building extends HeinousEntity {
 
     private SpreadEaglesActivity parentActivity;
-    private ArrayList<Breakable> breakableList;
     private boolean killed;
     Breakable bufferBreakable;
 
@@ -26,69 +24,158 @@ public class Building extends HeinousEntity {
         super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
         parentActivity = activity;
         killed = false;
-        breakableList = new ArrayList<Breakable>(0);
     }
 
-    public Breakable addBreakable(float pX,float pY, float width, float height) {
+    public Breakable grabBreakable(float pX, float pY, float width, float height) {
         Log.v("Breakable", pX + ":" + pY);
         bufferBreakable = parentActivity.getUnusedBreakable();
         bufferBreakable.useBreakable(pX, pY, width, height);
-        breakableList.add(bufferBreakable);
         return bufferBreakable;
     }
 
-    public void useBuilding(float x, float y){
+
+    //Returns the amount of time to offset the release of the next building
+
+    public float useBuilding(float x, float y, int type){
         this.setInUse(true);
         killed = false;
         this.setPosition(x, y);
         setVisible(true);
         Log.v("Bu-Used", "Building address" + address);
-        setProperties();
-        setMovements();
+        setProperties(type);
         parentActivity.attachEntityWithZ(this, SpreadEaglesActivity.BUILDING_Z_DEPTH);
+        return ((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY) - SpreadEaglesActivity.BUILDING_SPEED;
     }
 
-    private void setProperties(){
+    private void setProperties(int type){
 
         Random rand = new Random();
-
-        this.setWidth(rand.nextInt(Math.round(SpreadEaglesActivity.MAXIMUM_BUILDING_WIDTH - SpreadEaglesActivity.MINIMUM_BUILDING_WIDTH)) + SpreadEaglesActivity.MINIMUM_BUILDING_WIDTH);
-        this.setHeight((SpreadEaglesActivity.CAMERA_HEIGHT - this.getY()) - SpreadEaglesActivity.FOOTER_SPACE);
+        float bufferWidth;
+        float bufferHeight;
+        MoveXModifier ModifierBuffer;
         this.setColor(0, 1, 1, 1);
+        switch (type) {
+            case 1:
+                this.setY(100);
+                this.setWidth(240);
+                this.setHeight(SpreadEaglesActivity.CAMERA_HEIGHT - SpreadEaglesActivity.FOOTER_SPACE - this.getY());
 
-        float bufferWidth = this.getWidth()/4;
-        float bufferHeight = this.getHeight()/4;
+                ModifierBuffer = new MoveXModifier(SpreadEaglesActivity.BUILDING_SPEED, this.getX(), this.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
+                    @Override
+                    public void onModifierStarted(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
+                    }
+
+                    @Override
+                    public void onModifierFinished(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
+                        killMe();
+                    }
+                });
+                this.registerEntityModifier(ModifierBuffer);
+
+                //set attributes for door breakable
+                bufferWidth = this.getWidth() / 6;
+                bufferHeight = this.getHeight() / 4;
+                bufferBreakable = this.grabBreakable((this.getX() + this.getWidth()/2 - bufferWidth/2), (this.getY() + this.getHeight() - bufferHeight), bufferWidth, bufferHeight);
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                bufferBreakable.setMovements(ModifierBuffer);
+
+                //set attributes for Left Window breakable
+                bufferWidth = this.getWidth() / 10;
+                bufferHeight = this.getHeight() / 6;
+                bufferBreakable = this.grabBreakable((this.getX() + bufferWidth), (this.getY() + this.getHeight()/2 - bufferHeight/2), bufferWidth, bufferHeight);
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                bufferBreakable.setMovements(ModifierBuffer);
+
+                //set attributes for Right Window breakable
+                bufferBreakable = this.grabBreakable((this.getX() + this.getWidth() - bufferWidth*2), (this.getY() + this.getHeight()/2 - bufferHeight/2), bufferWidth, bufferHeight);
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                bufferBreakable.setMovements(ModifierBuffer);
+
+                break;
+
+            case 2:
+                this.setY(160);
+                this.setWidth(400);
+                this.setHeight(SpreadEaglesActivity.CAMERA_HEIGHT - SpreadEaglesActivity.FOOTER_SPACE - this.getY());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, this.getX(), this.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
+                    @Override
+                    public void onModifierStarted(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
+                    }
+
+                    @Override
+                    public void onModifierFinished(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
+                        killMe();
+                    }
+                });
+                this.registerEntityModifier(ModifierBuffer);
+
+                //set attributes for "door" breakable"
+                bufferWidth = this.getWidth() / 10;
+                bufferHeight = this.getHeight() / 3;
+                bufferBreakable = this.grabBreakable((this.getX() + this.getWidth()/2 - bufferWidth/2), (this.getY() + this.getHeight() - bufferHeight), bufferWidth, bufferHeight);
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                bufferBreakable.setMovements(ModifierBuffer);
+
+                //set attributes for Left Most Window breakable"
+                bufferWidth = this.getWidth() / 10;
+                bufferHeight = this.getWidth() / 10;
+                bufferBreakable = this.grabBreakable((this.getX() + this.getWidth()/8 - bufferWidth/2), (this.getY() + 2*this.getHeight()/3 - bufferHeight/2), bufferWidth, bufferHeight);
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                bufferBreakable.setMovements(ModifierBuffer);
+
+                //set attributes for Center Left Window breakable"
+                bufferBreakable = this.grabBreakable((this.getX() + (3 * this.getWidth()/8) - bufferWidth/2), (this.getY() + 2*this.getHeight()/3 - bufferHeight/2), bufferWidth, bufferHeight);
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                bufferBreakable.setMovements(ModifierBuffer);
+
+                //set attributes for Center Right Window breakable"
+                bufferBreakable = this.grabBreakable((this.getX() + (5 * this.getWidth()/8) - bufferWidth/2), (this.getY() + 2*this.getHeight()/3 - bufferHeight/2), bufferWidth, bufferHeight);
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                bufferBreakable.setMovements(ModifierBuffer);
+
+                //set attributes for Right Most Window breakable"
+                bufferBreakable = this.grabBreakable((this.getX() + (7 * this.getWidth()/8) - bufferWidth/2), (this.getY() + 2*this.getHeight()/3 - bufferHeight/2), bufferWidth, bufferHeight);
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                bufferBreakable.setMovements(ModifierBuffer);
 
 
-        Breakable door = this.addBreakable(this.getX() + rand.nextInt((int)(this.getWidth() - bufferWidth)),this.getY() + this.getHeight()/2 + rand.nextInt((int)(this.getHeight()/2 - bufferHeight)) ,bufferWidth,bufferHeight);
-        Breakable window = this.addBreakable(this.getX() + rand.nextInt((int)(this.getWidth() - bufferWidth)),this.getY() + rand.nextInt((int)(this.getHeight()/2 - bufferHeight)),bufferWidth,bufferHeight);
+                break;
 
-    }
+            default:
+                this.setY(100);
+                this.setWidth(SpreadEaglesActivity.BUILDING_WIDTH_STANDARD);
+                this.setHeight((SpreadEaglesActivity.CAMERA_HEIGHT - this.getY()) - SpreadEaglesActivity.FOOTER_SPACE);
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, this.getX(), this.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
+                    @Override
+                    public void onModifierStarted(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
 
-    private void setMovements(){
-        MoveXModifier ModifierBuffer = new MoveXModifier(SpreadEaglesActivity.BUILDING_SPEED, this.getX(), this.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
-        ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
-            @Override
-            public void onModifierStarted(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
+                    }
 
-            }
+                    @Override
+                    public void onModifierFinished(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
+                        killMe();
+                    }
+                });
+                this.registerEntityModifier(ModifierBuffer);
 
-            @Override
-            public void onModifierFinished(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
-                killMe();
-            }
-        });
-        this.registerEntityModifier(ModifierBuffer);
-        for(int i = 0; i < getBreakables().size(); i++){
-            ModifierBuffer = new MoveXModifier(SpreadEaglesActivity.BUILDING_SPEED,getBreakables().get(i).getX(),getBreakables().get(i).getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
-            getBreakables().get(i).setMovements(ModifierBuffer);
+                bufferWidth = this.getWidth() / 4;
+                bufferHeight = this.getHeight() / 4;
+
+                //Sets bottom breakable somewhere contained in the bottom half of this building
+                bufferBreakable = this.grabBreakable(this.getX() + rand.nextInt((int) (this.getWidth() - bufferWidth)), this.getY() + this.getHeight() / 2 + rand.nextInt((int) (this.getHeight() / 2 - bufferHeight)), bufferWidth, bufferHeight);
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                bufferBreakable.setMovements(ModifierBuffer);
+
+                //sets top breakable somewhere contained in the top half of building
+                bufferBreakable = this.grabBreakable(this.getX() + rand.nextInt((int) (this.getWidth() - bufferWidth)), this.getY() + rand.nextInt((int) (this.getHeight() / 2 - bufferHeight)), bufferWidth, bufferHeight);
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                bufferBreakable.setMovements(ModifierBuffer);
+
+                break;
         }
-
-    }
-
-    public ArrayList<Breakable> getBreakables(){
-        breakableList.trimToSize();
-        return breakableList;
     }
 
     public void killMe(){
@@ -102,9 +189,7 @@ public class Building extends HeinousEntity {
     public void recycleMe() {
         this.setPosition(SpreadEaglesActivity.CAMERA_WIDTH / 2, SpreadEaglesActivity.CAMERA_HEIGHT);
         this.setVisible(false);
-        breakableList.clear();
-        breakableList.trimToSize();
-        Log.v("Build-Recycle", "detached:" + this.detachSelf() + " and parent:" + this.getParent() + " and breakableList: " + breakableList.size());
+        Log.v("Build-Recycle", "detached:" + this.detachSelf() + " and parent:" + this.getParent());
         this.setInUse(false);
     }
 }

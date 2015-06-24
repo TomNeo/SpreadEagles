@@ -21,21 +21,10 @@ public class Crosshair extends HeinousEntity {
 
     private void setProperties(){
 
-        this.setWidth(50);
-        this.setHeight(50);
+        this.setWidth(SpreadEaglesActivity.CROSSHAIR_WIDTH);
+        this.setHeight(SpreadEaglesActivity.CROSSHAIR_HEIGHT);
     }
 
-
-/*    @Override
-    protected void onManagedUpdate(float pSecondsElapsed){
-        super.onManagedUpdate(pSecondsElapsed);
-        if(this.collidesWith(parentActivity.getPlayer())){
-            parentActivity.getPlayer().countScore(score);
-            //clearEntityModifiers();
-            //killMe();
-        }
-    }
-*/
     private void setMovements(){
     }
 

@@ -27,8 +27,8 @@ public class Eagle extends HeinousEntity {
         this.parentActivity  = pParent;
         DURATION = SpreadEaglesActivity.EAGLE_SPEED;
         MAX_DISTANCE = (float)Math.sqrt(Math.pow(SpreadEaglesActivity.CAMERA_HEIGHT,2) + Math.pow(SpreadEaglesActivity.CAMERA_WIDTH/2,2));
-        this.setWidth(50);
-        this.setHeight(50);
+        this.setWidth(SpreadEaglesActivity.EAGLE_WIDTH);
+        this.setHeight(SpreadEaglesActivity.EAGLE_HEIGHT);
         killed = false;
     }
 
