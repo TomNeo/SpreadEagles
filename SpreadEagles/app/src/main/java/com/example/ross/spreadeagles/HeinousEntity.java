@@ -25,6 +25,8 @@ public abstract class HeinousEntity extends Sprite {
 
     public void setAddress(int value){address = value;}
 
+    /* This should be called only once, at the very end of an update cycle so that nothing else will be referencing it.
+        this method can be used to do whatever has to be done to get this object ready to be reused if needed */
     public abstract void recycleMe();
 
 }

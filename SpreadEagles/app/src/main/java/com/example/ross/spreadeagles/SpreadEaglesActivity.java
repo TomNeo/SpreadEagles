@@ -114,6 +114,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     }
 
 
+    //Ran at onCreateResources(). Fills array Eagles with all the eagles the game will need
     private void populateEagles(int count) {
         for (int i = 0; i < Eagles.length; i++) {
             Eagles[i] = new Eagle(CAMERA_WIDTH / 2, CAMERA_HEIGHT, EaglesRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
@@ -122,6 +123,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         }
     }
 
+    //Ran at onCreateResources(). Fills array Buildings with all the Buildings the game will need
     private void populateBuildings(int count) {
         for (int i = 0; i < Buildings.length; i++) {
             Buildings[i] = new Building(CAMERA_WIDTH / 2, CAMERA_HEIGHT, BlockRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
@@ -130,6 +132,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         }
     }
 
+    //Ran at onCreateResources(). Fills array Breakables with all the Breakables the game will need
     private void populateBreakables(int count) {
         for (int i = 0; i < Breakables.length; i++) {
             Breakables[i] = new Breakable(CAMERA_WIDTH / 2, CAMERA_HEIGHT, BlockRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
@@ -138,6 +141,8 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         }
     }
 
+    /*Used to return the first eagle in Eagles that is currently not 'Used'
+      NOTE: This method does NOT make that Eagle used */
     private Eagle getUnusedEagle() {
         for (int i = 0; i < Eagles.length; i++) {
             if (!Eagles[i].isInUse()) {
@@ -150,6 +155,8 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         return null;
     }
 
+    /*Used to return the first Building in Buildings that is currently not 'Used'
+      NOTE: This method does NOT make that Building used */
     private Building getUnusedBuilding() {
         for (int i = 0; i < Buildings.length; i++) {
             if (!Buildings[i].isInUse()) {
@@ -160,6 +167,8 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         return null;
     }
 
+    /*Used to return the first Breakable in Breakables that is currently not 'Used'
+      NOTE: This method does NOT make that Breakable used */
     public Breakable getUnusedBreakable() {
         for (int i = 0; i < Breakables.length; i++) {
             if (!Breakables[i].isInUse()) {
@@ -171,25 +180,25 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         return null;
     }
 
+    //Currently only being used to track total hits being posted in Log.v "FINAL"
     public void addHit() {
         totalHits++;
     }
 
+    /*This runs at the end of every managedUpdate cycle. Used to recycle all 'killed' objects at a single time for synchronizing purposes.
+        recycleBin was made a list of HeinousEntity's so I could call the same 'recycleMe()' */
     private void cleanUp() {
         Log.v("TrashBin:", "Size " + recycleBin.size());
         recycleBin.trimToSize();
         for (int i = 0; i < recycleBin.size(); i++) {
-            Log.v("specific loop", "start " + i);
             recycleBin.get(i).recycleMe();
-            Log.v("specific loop", "passed " + i);
         }
         recycleBin.clear();
         recycleBin.trimToSize();
     }
 
+    //Called after game 'life' has reached the GAME_LENGTH
     private void finalCleanUp() {
-        Log.v("eagleList", "FINAL CALLED");
-        Log.v("BuildingList", "FINAL CALLED");
         for (int i = 0; i < Eagles.length; i++) {
             Eagles[i].dispose();
         }
@@ -204,11 +213,13 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         cleanUp();
     }
 
+    //Called inside the HeinousEntity's killMe() to get recycled at the next cleanUp()
     public void addToRecycleList(HeinousEntity entity) {
         recycleBin.add(entity);
         Log.v("Added Trash", "object:" + entity.toString() + " " + entity.address);
     }
 
+    //Called inside the Entity's 'Use' (or constructor I suppose) to set the Z_DEPTH of that object. Higher zDepths appear on top of lower Entities
     public void attachEntityWithZ(IEntity pEntity, int zDepth) {
         mScene.attachChildWithZ(pEntity, zDepth);
     }
@@ -297,7 +308,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         mScene.registerUpdateHandler(new IUpdateHandler() {
             float count = 0;
             int cycles = 0;
-            float offset = 0;
+            float offset = 0;//this offset is required since wider buildings take more time to cross the width of the screen...(see below)
             Random rand = new Random();
 
             @Override
@@ -306,14 +317,15 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                     life = life + time;
                     count = count + time;
                     cycles++;
-                    if (count >= INTERVAL_BETWEEN_BUILDINGS + offset) {
+                    if (count >= INTERVAL_BETWEEN_BUILDINGS + offset) { // <------------ (where offset is applied)
                         Log.v("FPS", " FPS: " + (cycles / count));
                         count = 0;
                         cycles = 0;
                         Building BuildingBuffer = getUnusedBuilding();
-                        offset = BuildingBuffer.useBuilding(CAMERA_WIDTH, CAMERA_HEIGHT - FOOTER_SPACE,rand.nextInt(3));
+                        offset = BuildingBuffer.useBuilding(CAMERA_WIDTH, CAMERA_HEIGHT - FOOTER_SPACE,rand.nextInt(3));//...so when the building knows how long it'll take, we offset the release of the next building
                     }
 
+                    //If game is out of time, do ending stuff
                     if (gameLength - life <= 0) {
                         if (true)
                             myPrefs.edit().putBoolean("leftFinished", true).commit();
@@ -331,7 +343,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                         stopped = true;
                     }
                     Log.v("Time", " Total Time: " + life);
-                    cleanUp();
+                    cleanUp();//<--------- Should be last thing in parent update loop. Should never be called anywhere else, for asynchronous reasons.
                 } else {
                     Log.v("Stopped", "Stopped");
                 }
@@ -354,6 +366,9 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         return localEngineOptions;
     }
 
+    /*This is used by an Eagle object (using itself as a parameter) so that THIS object and check its private list Breakables for collisions.
+        if it is a collision on a currently in use, NOT hit breakable, the breakable becomes hit and the 'return true;' tells the eagle to
+        stop all modifiers and 'kill' itself  */
     public boolean checkEagleCollidesWithBreakables(HeinousEntity pEntity) {
         for(int i = 0; i < Breakables.length; i++){
             if(Breakables[i].isInUse() && Breakables[i].collidesWith(pEntity) && !Breakables[i].isHit()){
