@@ -54,22 +54,25 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     public final static int GAME_LENGTH = 46;   //in seconds
     public final static float EAGLE_HEIGHT = 30f;
     public final static float EAGLE_WIDTH = 30f;
-    public final static float CROSSHAIR_HEIGHT = 30f;
-    public final static float CROSSHAIR_WIDTH = 30f;
     public final static float EAGLE_SPEED = .25f;  // Furthest path takes n seconds, all others adjusted to this speed
     public final static float EAGLE_COLLISION = .9f;   // percentage as a decimal. how far along path before collisions are checked must be less than 1 or else it will never check for collision.
-    public final static float INTERVAL_BETWEEN_BUILDINGS = .8f; //counted in seconds
-    public final static float BUILDING_SPEED = 2f;        //number of seconds it takes to the BUILDING_WIDTH_STANDARD (and all it's breakables) across the screen.
+    public final static float CROSSHAIR_HEIGHT = 30f;
+    public final static float CROSSHAIR_WIDTH = 30f;
+    public final static float INTERVAL_BETWEEN_BUILDINGS = 1.2f; //counted in seconds
+    public final static float BUILDING_SPEED = 2.5f;        //number of seconds it takes for the BUILDING_WIDTH_STANDARD (and all it's breakables) across the screen.
     public final static float BUILDING_WIDTH_STANDARD = 250; //Used on the switch case default for building types, and sets the base speed for all buildings
-    public final static float FOOTER_SPACE = 120;           //distance from bottom of screen to bottom of buildings
+    public final static float FOOTER_SPACE = 120;//distance from bottom of screen to bottom of buildings
     public final static float BUILDING_VELOCITY = (CAMERA_WIDTH + BUILDING_WIDTH_STANDARD)/BUILDING_SPEED; //calculated so we can adjust other settings and not have to redo the algebra
-
+    public final static float TREE_BASE_HEIGHT = 70;//distance from bottom of screen to bottom of trees
+    public final static float TREE_SPEED = BUILDING_SPEED * .7f;
+    public final static float TREE_WIDTH = 44;
     /*Higher numbers will appear on top of lower numbers*/
 
     public final static int CROSSHAIR_Z_DEPTH = 2;
     public final static int EAGLE_Z_DEPTH = 1;
-    public final static int BREAKABLE_Z_DEPTH = 0;
-    public final static int BUILDING_Z_DEPTH = -1;
+    public final static int TREE_Z_DEPTH = 0;
+    public final static int BREAKABLE_Z_DEPTH = -1;
+    public final static int BUILDING_Z_DEPTH = -2;
 
     private int highestNumOfEagles;
     private int totalNumOfEagles;
@@ -81,6 +84,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private ZControlledScene mScene;
     private Background mBackground;
     private Crosshair mPlayer;
+    private Tree mTree;
     private Eagle[] Eagles;
     private Building[] Buildings;
     private Breakable[] Breakables;
@@ -109,7 +113,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         totalBreakables = 0;
         life = 0;
         stopped = false;
-
+       // mTree = new Tree(CAMERA_WIDTH, 0, BlockRegion, getVertexBufferObjectManager(), this);
         Log.v("TrashBin:", "INITIALIZED");
     }
 
@@ -276,6 +280,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         populateEagles(MAX_NUMBER_EAGLES);
         populateBuildings(MAX_NUMBER_BUILDINGS);
         populateBreakables(MAX_NUMBER_BREAKABLES);
+        mTree = new Tree(CAMERA_WIDTH, 0, BlockRegion, getVertexBufferObjectManager(), this);
     }
 
     @Override
@@ -306,8 +311,10 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         });
 
         mScene.registerUpdateHandler(new IUpdateHandler() {
-            float count = 0;
+            float BuildingCount = 0;
+            float TreeCount = 0;
             int cycles = 0;
+            float treeOffset = .2f;
             float offset = 0;//this offset is required since wider buildings take more time to cross the width of the screen...(see below)
             Random rand = new Random();
 
@@ -315,14 +322,26 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             public void onUpdate(float time) {
                 if (!stopped) {
                     life = life + time;
-                    count = count + time;
+                    BuildingCount = BuildingCount + time;
+                    TreeCount = TreeCount + time;
                     cycles++;
-                    if (count >= INTERVAL_BETWEEN_BUILDINGS + offset) { // <------------ (where offset is applied)
-                        Log.v("FPS", " FPS: " + (cycles / count));
-                        count = 0;
+
+                    if (BuildingCount >= INTERVAL_BETWEEN_BUILDINGS + offset) { // <------------ (where offset is applied)
+                        Log.v("FPS", " FPS: " + (cycles / BuildingCount));
+                        BuildingCount = 0;
                         cycles = 0;
                         Building BuildingBuffer = getUnusedBuilding();
                         offset = BuildingBuffer.useBuilding(CAMERA_WIDTH, CAMERA_HEIGHT - FOOTER_SPACE,rand.nextInt(3));//...so when the building knows how long it'll take, we offset the release of the next building
+                    }
+
+                    if (TreeCount >=  TREE_SPEED + treeOffset) {
+
+                        treeOffset = rand.nextInt(12)/7;
+                        TreeCount = 0;
+                        cycles = 0;
+                        if (!mTree.isInUse()) {
+                            mTree.useTree();
+                        }
                     }
 
                     //If game is out of time, do ending stuff
@@ -370,6 +389,12 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         if it is a collision on a currently in use, NOT hit breakable, the breakable becomes hit and the 'return true;' tells the eagle to
         stop all modifiers and 'kill' itself  */
     public boolean checkEagleCollidesWithBreakables(HeinousEntity pEntity) {
+
+        //if eagle is hitting tree, kill eagle, no need to check further
+        if (pEntity.collidesWith(mTree)){
+            return true;
+        }
+
         for(int i = 0; i < Breakables.length; i++){
             if(Breakables[i].isInUse() && Breakables[i].collidesWith(pEntity) && !Breakables[i].isHit()){
                 Breakables[i].hit();
