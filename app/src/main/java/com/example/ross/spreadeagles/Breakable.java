@@ -20,7 +20,7 @@ public class Breakable extends HeinousEntity{
     public Breakable(float pX, float pY, ITextureRegion pTextureRegion, VertexBufferObjectManager pVertexBufferObjectManager, SpreadEaglesActivity pParent) {
         super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
         this.parentActivity  = pParent;
-        this.setColor(1,0,0,1);
+//        this.setColor(1, 0, 0);
         hit = false;
         killed = false;
     }
@@ -64,7 +64,7 @@ public class Breakable extends HeinousEntity{
     public void hit(){
         hit = true;
         parentActivity.addHit();
-        this.setColor(0,1,0,1);
+        this.setColor(1, 0, 0);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class Breakable extends HeinousEntity{
         Log.v("Break-Recycle", "Called");
         this.setPosition(SpreadEaglesActivity.CAMERA_WIDTH / 2, SpreadEaglesActivity.CAMERA_HEIGHT);
         this.setVisible(false);
-        this.setColor(1,0,0,1);
+//        this.setColor(1, 0, 0);
         hit = false;
         Log.v("Break-Recycle", "detached:" + this.detachSelf() + " and parent:" + this.getParent());
         this.setInUse(false);
