@@ -24,7 +24,7 @@ public class Tree extends HeinousEntity {
         this.setWidth(SpreadEaglesActivity.TREE_WIDTH);
         this.setHeight(SpreadEaglesActivity.CAMERA_HEIGHT - SpreadEaglesActivity.TREE_BASE_HEIGHT);
         killed = false;
-        this.setColor(.2f,1,.2f,1);
+        this.setColor(.2f, .2f, .2f);
 //        ModifierBuffer = new MoveXModifier(SpreadEaglesActivity.TREE_SPEED, this.getX(), -this.getWidth());
 //        ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
 //            @Override
