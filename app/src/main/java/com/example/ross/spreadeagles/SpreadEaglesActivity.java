@@ -309,7 +309,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
         foreground = new Sprite(0, CAMERA_HEIGHT - CarTexture.getHeight(), CarRegion, getVertexBufferObjectManager());
 
-        mScene.attachChild(foreground);
+        attachEntityWithZ(foreground, CROSSHAIR_Z_DEPTH);
 
         mPlayer = new Crosshair((CAMERA_WIDTH / 4 - 32), (CAMERA_HEIGHT / 1.5f - 32), CrosshairRegion, getVertexBufferObjectManager(), this);
 
