@@ -15,11 +15,6 @@
         </activity>
 
         <activity
-            android:name=".PoliceBrutalityActivity"
-            android:label="SpreadEagles" >
-        </activity>
-
-        <activity
             android:name=".SpreadEaglesActivity"
             android:label="SpreadEagles" >
 
