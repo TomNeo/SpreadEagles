@@ -54,7 +54,7 @@ public class Building extends HeinousEntity {
         float bufferHeight;
         MoveXModifier ModifierBuffer;
 
-        this.setColor(0, 1, 1, 1);
+//        this.setColor(0, 1, 1);
 
         switch (type) {
             case 1:
