@@ -41,10 +41,10 @@ public class Tree extends HeinousEntity {
     public void useTree(){
         this.setInUse(true);
         killed = false;
-        this.setX(SpreadEaglesActivity.CAMERA_WIDTH);
+        this.setX(-this.getWidth());
         setVisible(true);
         parentActivity.attachEntityWithZ(this, SpreadEaglesActivity.TREE_Z_DEPTH);
-        ModifierBuffer = new MoveXModifier(SpreadEaglesActivity.TREE_SPEED, this.getX(), -this.getWidth());
+        ModifierBuffer = new MoveXModifier(SpreadEaglesActivity.TREE_SPEED, this.getX(), SpreadEaglesActivity.CAMERA_WIDTH);
         ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
             @Override
             public void onModifierStarted(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {

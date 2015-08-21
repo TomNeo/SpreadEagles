@@ -58,11 +58,12 @@ public class Building extends HeinousEntity {
 
         switch (type) {
             case 1:
-                this.setY(100);
+                this.setY(40);
                 this.setWidth(240);
+                this.setX(this.getX()-this.getWidth());
                 this.setHeight(SpreadEaglesActivity.CAMERA_HEIGHT - SpreadEaglesActivity.FOOTER_SPACE - this.getY());
 
-                ModifierBuffer = new MoveXModifier(SpreadEaglesActivity.BUILDING_SPEED, this.getX(), this.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier(SpreadEaglesActivity.BUILDING_SPEED, this.getX(), SpreadEaglesActivity.CAMERA_WIDTH);
                 ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
                     @Override
                     public void onModifierStarted(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
@@ -79,28 +80,29 @@ public class Building extends HeinousEntity {
                 bufferWidth = this.getWidth() / 6;
                 bufferHeight = this.getHeight() / 4;
                 bufferBreakable = this.grabBreakable((this.getX() + this.getWidth()/2 - bufferWidth/2), (this.getY() + this.getHeight() - bufferHeight), bufferWidth, bufferHeight);
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() + SpreadEaglesActivity.CAMERA_WIDTH - this.getX());
                 bufferBreakable.setMovements(ModifierBuffer); //I have the individual breakables attach the Modifiers so the 'onModifierFinished(...)' can call that objects 'killMe()'
 
                 //set attributes for Left Window breakable
                 bufferWidth = this.getWidth() / 10;
                 bufferHeight = this.getHeight() / 6;
                 bufferBreakable = this.grabBreakable((this.getX() + bufferWidth), (this.getY() + this.getHeight()/2 - bufferHeight/2), bufferWidth, bufferHeight);
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() + SpreadEaglesActivity.CAMERA_WIDTH - this.getX());
                 bufferBreakable.setMovements(ModifierBuffer);//I have the individual breakables attach the Modifiers so the 'onModifierFinished(...)' can call that objects 'killMe()'
 
                 //set attributes for Right Window breakable (same size as one above)
                 bufferBreakable = this.grabBreakable((this.getX() + this.getWidth() - bufferWidth*2), (this.getY() + this.getHeight()/2 - bufferHeight/2), bufferWidth, bufferHeight);
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() + SpreadEaglesActivity.CAMERA_WIDTH - this.getX());
                 bufferBreakable.setMovements(ModifierBuffer);//I have the individual breakables attach the Modifiers so the 'onModifierFinished(...)' can call that objects 'killMe()'
 
                 break;
 
             case 2:
-                this.setY(160);
+                this.setY(80);
                 this.setWidth(400);
+                this.setX(this.getX() - this.getWidth());
                 this.setHeight(SpreadEaglesActivity.CAMERA_HEIGHT - SpreadEaglesActivity.FOOTER_SPACE - this.getY());
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, this.getX(), this.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, this.getX(), SpreadEaglesActivity.CAMERA_WIDTH);
                 ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
                     @Override
                     public void onModifierStarted(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
@@ -117,38 +119,39 @@ public class Building extends HeinousEntity {
                 bufferWidth = this.getWidth() / 10;
                 bufferHeight = this.getHeight() / 3;
                 bufferBreakable = this.grabBreakable((this.getX() + this.getWidth()/2 - bufferWidth/2), (this.getY() + this.getHeight() - bufferHeight), bufferWidth, bufferHeight);
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() + SpreadEaglesActivity.CAMERA_WIDTH - this.getX());
                 bufferBreakable.setMovements(ModifierBuffer);//I have the individual breakables attach the Modifiers so the 'onModifierFinished(...)' can call that objects 'killMe()'
 
                 //set attributes for Left Most Window breakable
                 bufferWidth = this.getWidth() / 10;
                 bufferHeight = this.getWidth() / 10;
                 bufferBreakable = this.grabBreakable((this.getX() + this.getWidth()/8 - bufferWidth/2), (this.getY() + this.getHeight()/3 - bufferHeight/2), bufferWidth, bufferHeight);
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() + SpreadEaglesActivity.CAMERA_WIDTH - this.getX());
                 bufferBreakable.setMovements(ModifierBuffer);//I have the individual breakables attach the Modifiers so the 'onModifierFinished(...)' can call that objects 'killMe()'
 
                 //set attributes for Center Left Window breakable (same size as first window)
                 bufferBreakable = this.grabBreakable((this.getX() + (3 * this.getWidth()/8) - bufferWidth/2), (this.getY() + this.getHeight()/3 - bufferHeight/2), bufferWidth, bufferHeight);
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() + SpreadEaglesActivity.CAMERA_WIDTH - this.getX());
                 bufferBreakable.setMovements(ModifierBuffer);//I have the individual breakables attach the Modifiers so the 'onModifierFinished(...)' can call that objects 'killMe()'
 
                 //set attributes for Center Right Window breakable (same size as first window)
                 bufferBreakable = this.grabBreakable((this.getX() + (5 * this.getWidth()/8) - bufferWidth/2), (this.getY() + this.getHeight()/3 - bufferHeight/2), bufferWidth, bufferHeight);
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() + SpreadEaglesActivity.CAMERA_WIDTH - this.getX());
                 bufferBreakable.setMovements(ModifierBuffer);//I have the individual breakables attach the Modifiers so the 'onModifierFinished(...)' can call that objects 'killMe()'
 
                 //set attributes for Right Most Window breakable (same size as first window)
                 bufferBreakable = this.grabBreakable((this.getX() + (7 * this.getWidth()/8) - bufferWidth/2), (this.getY() + this.getHeight()/3 - bufferHeight/2), bufferWidth, bufferHeight);
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() + SpreadEaglesActivity.CAMERA_WIDTH - this.getX());
                 bufferBreakable.setMovements(ModifierBuffer);//I have the individual breakables attach the Modifiers so the 'onModifierFinished(...)' can call that objects 'killMe()'
 
                 break;
 
             default:
-                this.setY(100);
+                this.setY(40);
                 this.setWidth(SpreadEaglesActivity.BUILDING_WIDTH_STANDARD);
+                this.setX(this.getX() - this.getWidth());
                 this.setHeight((SpreadEaglesActivity.CAMERA_HEIGHT - this.getY()) - SpreadEaglesActivity.FOOTER_SPACE);
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, this.getX(), this.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, this.getX(), SpreadEaglesActivity.CAMERA_WIDTH);
                 ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
                     @Override
                     public void onModifierStarted(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
@@ -167,12 +170,12 @@ public class Building extends HeinousEntity {
 
                 //Sets bottom breakable somewhere contained in the bottom half of this building
                 bufferBreakable = this.grabBreakable(this.getX() + rand.nextInt((int) (this.getWidth() - bufferWidth)), this.getY() + this.getHeight() / 2 + rand.nextInt((int) (this.getHeight() / 2 - bufferHeight)), bufferWidth, bufferHeight);
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() + SpreadEaglesActivity.CAMERA_WIDTH - this.getX());
                 bufferBreakable.setMovements(ModifierBuffer);//I have the individual breakables attach the Modifiers so the 'onModifierFinished(...)' can call that objects 'killMe()'
 
                 //sets top breakable somewhere contained in the top half of building
                 bufferBreakable = this.grabBreakable(this.getX() + rand.nextInt((int) (this.getWidth() - bufferWidth)), this.getY() + rand.nextInt((int) (this.getHeight() / 2 - bufferHeight)), bufferWidth, bufferHeight);
-                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() - SpreadEaglesActivity.CAMERA_WIDTH - this.getWidth());
+                ModifierBuffer = new MoveXModifier((SpreadEaglesActivity.CAMERA_WIDTH + this.getWidth())/SpreadEaglesActivity.BUILDING_VELOCITY, bufferBreakable.getX(), bufferBreakable.getX() + SpreadEaglesActivity.CAMERA_WIDTH - this.getX());
                 bufferBreakable.setMovements(ModifierBuffer);//I have the individual breakables attach the Modifiers so the 'onModifierFinished(...)' can call that objects 'killMe()'
 
                 break;

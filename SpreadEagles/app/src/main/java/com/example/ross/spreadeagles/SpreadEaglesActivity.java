@@ -14,6 +14,7 @@ import org.andengine.entity.IEntity;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
+import org.andengine.entity.sprite.Sprite;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.font.Font;
 import org.andengine.opengl.texture.ITexture;
@@ -61,7 +62,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     public final static float INTERVAL_BETWEEN_BUILDINGS = 1.2f; //counted in seconds
     public final static float BUILDING_SPEED = 2.5f;        //number of seconds it takes for the BUILDING_WIDTH_STANDARD (and all it's breakables) across the screen.
     public final static float BUILDING_WIDTH_STANDARD = 250; //Used on the switch case default for building types, and sets the base speed for all buildings
-    public final static float FOOTER_SPACE = 120;//distance from bottom of screen to bottom of buildings
+    public final static float FOOTER_SPACE = 220;//distance from bottom of screen to bottom of buildings
     public final static float BUILDING_VELOCITY = (CAMERA_WIDTH + BUILDING_WIDTH_STANDARD)/BUILDING_SPEED; //calculated so we can adjust other settings and not have to redo the algebra
     public final static float TREE_BASE_HEIGHT = 70;//distance from bottom of screen to bottom of trees
     public final static float TREE_SPEED = BUILDING_SPEED * .7f;
@@ -89,15 +90,16 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private Building[] Buildings;
     private Breakable[] Breakables;
     private ArrayList<HeinousEntity> recycleBin;
+    private Sprite foreground;
 
-    private ITexture BlockTexture, CrosshairTexture, EaglesTexture;
+    private ITexture BlockTexture, CrosshairTexture, EaglesTexture, CarTexture;
     private BitmapTextureAtlas mFontTexture;
     private Font mFont;
 
     private float gameLength;
 
     SharedPreferences myPrefs;
-    private ITextureRegion BlockRegion, CrosshairRegion, EaglesRegion;
+    private ITextureRegion BlockRegion, CrosshairRegion, EaglesRegion, CarRegion;
     private boolean stopped;
 
 
@@ -236,7 +238,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             this.BlockTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
                 @Override
                 public InputStream open() throws IOException {
-                    return getAssets().open("gfx/Block.png");
+                    return getAssets().open("gfx/window.png");
                 }
             });
             this.BlockTexture.load();
@@ -254,6 +256,19 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             });
             this.CrosshairTexture.load();
             this.CrosshairRegion = TextureRegionFactory.extractFromTexture(this.CrosshairTexture);
+        } catch (IOException e) {
+            Debug.e(e);
+        }
+
+        try {
+            this.CarTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+                @Override
+                public InputStream open() throws IOException {
+                    return getAssets().open("gfx/car_inside.png");
+                }
+            });
+            this.CarTexture.load();
+            this.CarRegion = TextureRegionFactory.extractFromTexture(this.CarTexture);
         } catch (IOException e) {
             Debug.e(e);
         }
@@ -291,6 +306,10 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         mBackground = new Background(0, 0, 0, 1);
 
         mScene.setBackground(mBackground);
+
+        foreground = new Sprite(0, CAMERA_HEIGHT - CarTexture.getHeight(), CarRegion, getVertexBufferObjectManager());
+
+        mScene.attachChild(foreground);
 
         mPlayer = new Crosshair((CAMERA_WIDTH / 4 - 32), (CAMERA_HEIGHT / 1.5f - 32), CrosshairRegion, getVertexBufferObjectManager(), this);
 
@@ -331,7 +350,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                         BuildingCount = 0;
                         cycles = 0;
                         Building BuildingBuffer = getUnusedBuilding();
-                        offset = BuildingBuffer.useBuilding(CAMERA_WIDTH, CAMERA_HEIGHT - FOOTER_SPACE,rand.nextInt(3));//...so when the building knows how long it'll take, we offset the release of the next building
+                        offset = BuildingBuffer.useBuilding(0, CAMERA_HEIGHT - FOOTER_SPACE,rand.nextInt(3));//...so when the building knows how long it'll take, we offset the release of the next building
                     }
 
                     if (TreeCount >=  TREE_SPEED + treeOffset) {
