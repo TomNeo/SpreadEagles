@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Random;
 
-
 public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     /**
@@ -41,9 +40,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
      *
      * I have a small list of considerations to keep in mind while setting these values:
      *
-     * --EAGLE_COLLISION should be less than 1. anything >= 1 will result in ALL eagles killing themselves without ever checking for collisions.
-     * --INTERVAL_BETWEEN_BUILDINGS gets offset during runtime to control even spacing between different random building widths
-     *
+     * --EAGLE_COLLISION should be less than 1. anything >= 1 will result in ALL eagles killing themselves without ever checking for collisions.*
      * ***
      */
     public final static int MAX_NUMBER_EAGLES = 6;
@@ -92,14 +89,14 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private ArrayList<HeinousEntity> recycleBin;
     private Sprite foreground;
 
-    private ITexture BlockTexture, CrosshairTexture, EaglesTexture, CarTexture;
+    private ITexture mHouseTexture, mWindowTexture, BlockTexture, CrosshairTexture, EaglesTexture, CarTexture;
     private BitmapTextureAtlas mFontTexture;
     private Font mFont;
 
     private float gameLength;
 
     SharedPreferences myPrefs;
-    private ITextureRegion BlockRegion, CrosshairRegion, EaglesRegion, CarRegion;
+    private ITextureRegion mHouseRegion, mWindowRegion, BlockRegion, CrosshairRegion, EaglesRegion, CarRegion;
     private boolean stopped;
 
 
@@ -119,7 +116,6 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         Log.v("TrashBin:", "INITIALIZED");
     }
 
-
     //Ran at onCreateResources(). Fills array Eagles with all the eagles the game will need
     private void populateEagles(int count) {
         for (int i = 0; i < Eagles.length; i++) {
@@ -132,7 +128,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     //Ran at onCreateResources(). Fills array Buildings with all the Buildings the game will need
     private void populateBuildings(int count) {
         for (int i = 0; i < Buildings.length; i++) {
-            Buildings[i] = new Building(CAMERA_WIDTH / 2, CAMERA_HEIGHT, BlockRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
+            Buildings[i] = new Building(CAMERA_WIDTH / 2, CAMERA_HEIGHT, mHouseRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
             Buildings[i].setAddress(i);
             Log.v("Gen-Bu", "Building:" + Buildings[i].getAddress());
         }
@@ -141,7 +137,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     //Ran at onCreateResources(). Fills array Breakables with all the Breakables the game will need
     private void populateBreakables(int count) {
         for (int i = 0; i < Breakables.length; i++) {
-            Breakables[i] = new Breakable(CAMERA_WIDTH / 2, CAMERA_HEIGHT, BlockRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
+            Breakables[i] = new Breakable(CAMERA_WIDTH / 2, CAMERA_HEIGHT, mWindowRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
             Breakables[i].setAddress(i);
             Log.v("Gen-Br", "Breakable:" + Breakables[i].getAddress());
         }
@@ -238,11 +234,37 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             this.BlockTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
                 @Override
                 public InputStream open() throws IOException {
-                    return getAssets().open("gfx/window.png");
+                    return getAssets().open("gfx/Block.png");
                 }
             });
             this.BlockTexture.load();
             this.BlockRegion = TextureRegionFactory.extractFromTexture(this.BlockTexture);
+        } catch (IOException e) {
+            Debug.e(e);
+        }
+
+        try {
+            this.mWindowTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+                @Override
+                public InputStream open() throws IOException {
+                    return getAssets().open("gfx/window.png");
+                }
+            });
+            this.mWindowTexture.load();
+            this.mWindowRegion = TextureRegionFactory.extractFromTexture(this.mWindowTexture);
+        } catch (IOException e) {
+            Debug.e(e);
+        }
+
+        try {
+            this.mHouseTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+                @Override
+                public InputStream open() throws IOException {
+                    return getAssets().open("gfx/house.png");
+                }
+            });
+            this.mHouseTexture.load();
+            this.mHouseRegion = TextureRegionFactory.extractFromTexture(this.mHouseTexture);
         } catch (IOException e) {
             Debug.e(e);
         }
