@@ -26,7 +26,7 @@ public class Eagle extends HeinousEntity {
         super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
         this.parentActivity  = pParent;
         DURATION = SpreadEaglesActivity.EAGLE_SPEED;
-        MAX_DISTANCE = (float)Math.sqrt(Math.pow(SpreadEaglesActivity.CAMERA_HEIGHT,2) + Math.pow(SpreadEaglesActivity.CAMERA_WIDTH/2,2));
+        MAX_DISTANCE = (float)Math.sqrt(Math.pow(SpreadEaglesActivity.CAMERA_HEIGHT, 2) + Math.pow(SpreadEaglesActivity.CAMERA_WIDTH/2, 2));
         this.setWidth(SpreadEaglesActivity.EAGLE_WIDTH);
         this.setHeight(SpreadEaglesActivity.EAGLE_HEIGHT);
         killed = false;
@@ -34,16 +34,21 @@ public class Eagle extends HeinousEntity {
 
     public void useEagle(float destinationX, float destinationY){
         this.setInUse(true);
+        if (destinationX <= SpreadEaglesActivity.CAMERA_WIDTH / 2) {
+            this.setFlipped(true, false);
+        } else {
+            this.setFlipped(false, false);
+        }
         killed = false;
         setVisible(true);
         life = 0;
-        distance = (float)Math.sqrt(Math.pow(Math.abs(SpreadEaglesActivity.CAMERA_WIDTH/2 - destinationX),2) + Math.pow((SpreadEaglesActivity.CAMERA_WIDTH- destinationY),2));
-        parentActivity.attachEntityWithZ(this,SpreadEaglesActivity.EAGLE_Z_DEPTH);
+        distance = (float)Math.sqrt(Math.pow(Math.abs(SpreadEaglesActivity.CAMERA_WIDTH/2 - destinationX), 2) + Math.pow((SpreadEaglesActivity.CAMERA_WIDTH - destinationY), 2));
+        parentActivity.attachEntityWithZ(this, SpreadEaglesActivity.EAGLE_Z_DEPTH);
         setMovements(destinationX, destinationY);
         Log.v("Ea-Used", "Eagle address" + address);
     }
 
-    private void setMovements(float pX,float pY){
+    private void setMovements(float pX, float pY){
             ModifierBuffer = new MoveModifier(distance / MAX_DISTANCE * DURATION, Eagle.this.getX(), pX, Eagle.this.getY(), pY);
             ModifierBuffer.addModifierListener(new IModifier.IModifierListener<IEntity>() {
                 @Override
@@ -51,7 +56,7 @@ public class Eagle extends HeinousEntity {
                 }
                 @Override
                 public void onModifierFinished(IModifier<IEntity> iEntityIModifier, IEntity iEntity) {
-                    Log.v("eagle killed","end of path thing");
+                    Log.v("eagle killed", "end of path thing");
                     killMe();
                 }
             });

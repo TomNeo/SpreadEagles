@@ -50,8 +50,8 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     public final static int CAMERA_WIDTH = 748;
     public final static int CAMERA_HEIGHT = 480;
     public final static int GAME_LENGTH = 46;   //in seconds
-    public final static float EAGLE_HEIGHT = 30f;
-    public final static float EAGLE_WIDTH = 30f;
+    public final static float EAGLE_HEIGHT = 70f;
+    public final static float EAGLE_WIDTH = 70f;
     public final static float EAGLE_SPEED = .25f;  // Furthest path takes n seconds, all others adjusted to this speed
     public final static float EAGLE_COLLISION = .9f;   // percentage as a decimal. how far along path before collisions are checked must be less than 1 or else it will never check for collision.
     public final static float CROSSHAIR_HEIGHT = 30f;
@@ -298,7 +298,9 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             this.EaglesTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
                 @Override
                 public InputStream open() throws IOException {
-                    return getAssets().open("gfx/Eagless.png");
+                    //  © 2005-2013 Julien Jorge <julien.jorge@stuff-o-matic.com>
+                    // put his name in credits for woodpecker (eagle) sprite
+                    return getAssets().open("gfx/eagle.png");
                 }
             });
             this.EaglesTexture.load();
