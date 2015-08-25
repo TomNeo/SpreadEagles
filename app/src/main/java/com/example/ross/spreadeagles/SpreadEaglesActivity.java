@@ -99,7 +99,6 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private ITextureRegion mHouseRegion, mWindowRegion, BlockRegion, CrosshairRegion, EaglesRegion, CarRegion;
     private boolean stopped;
 
-
     public SpreadEaglesActivity() {
         gameLength = GAME_LENGTH;
         recycleBin = new ArrayList<HeinousEntity>(0);
