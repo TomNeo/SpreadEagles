@@ -85,7 +85,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private Tree mTree;
     private Eagle[] Eagles;
     private Building[] Buildings;
-    private Breakable[] Breakables;
+    private Window[] windows;
     private ArrayList<HeinousEntity> recycleBin;
     private Sprite foreground;
 
@@ -101,10 +101,10 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     public SpreadEaglesActivity() {
         gameLength = GAME_LENGTH;
-        recycleBin = new ArrayList<HeinousEntity>(0);
+        recycleBin = new ArrayList<>(0);
         Eagles = new Eagle[MAX_NUMBER_EAGLES];
         Buildings = new Building[MAX_NUMBER_BUILDINGS];
-        Breakables = new Breakable[MAX_NUMBER_BREAKABLES];
+        windows = new Window[MAX_NUMBER_BREAKABLES];
         highestNumOfEagles = 0;
         totalNumOfEagles = 0;
         totalHits = 0;
@@ -133,12 +133,12 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         }
     }
 
-    //Ran at onCreateResources(). Fills array Breakables with all the Breakables the game will need
+    //Ran at onCreateResources(). Fills array windows with all the windows the game will need
     private void populateBreakables(int count) {
-        for (int i = 0; i < Breakables.length; i++) {
-            Breakables[i] = new Breakable(CAMERA_WIDTH / 2, CAMERA_HEIGHT, mWindowRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
-            Breakables[i].setAddress(i);
-            Log.v("Gen-Br", "Breakable:" + Breakables[i].getAddress());
+        for (int i = 0; i < windows.length; i++) {
+            windows[i] = new Window(CAMERA_WIDTH / 2, CAMERA_HEIGHT, mWindowRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
+            windows[i].setAddress(i);
+            Log.v("Gen-Br", "Breakable:" + windows[i].getAddress());
         }
     }
 
@@ -168,13 +168,13 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         return null;
     }
 
-    /*Used to return the first Breakable in Breakables that is currently not 'Used'
+    /*Used to return the first Breakable in windows that is currently not 'Used'
       NOTE: This method does NOT make that Breakable used */
     public Breakable getUnusedBreakable() {
-        for (int i = 0; i < Breakables.length; i++) {
-            if (!Breakables[i].isInUse()) {
+        for (int i = 0; i < windows.length; i++) {
+            if (!windows[i].isInUse()) {
                 totalBreakables++;
-                return Breakables[i];
+                return windows[i];
             }
         }
         Log.v("Not found", "no building found");
@@ -206,8 +206,8 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         for (int i = 0; i < Buildings.length; i++) {
             Buildings[i].dispose();
         }
-        for (int i = 0; i < Breakables.length; i++) {
-            Breakables[i].dispose();
+        for (int i = 0; i < windows.length; i++) {
+            windows[i].dispose();
         }
         Log.v("TrashBin:", "FINAL CALLED");
 
@@ -396,7 +396,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                         Intent intent = new Intent(SpreadEaglesActivity.this, Main.class);
                         Log.v("Final", " max Eagles: " + highestNumOfEagles);
                         Log.v("Final", " Total Eagles: " + totalNumOfEagles);
-                        Log.v("Final", " Total Breakables: " + totalBreakables);
+                        Log.v("Final", " Total windows: " + totalBreakables);
                         Log.v("Final", " Total Hits: " + totalHits);
                         finalCleanUp();
                         startActivity(intent);
@@ -427,7 +427,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         return localEngineOptions;
     }
 
-    /*This is used by an Eagle object (using itself as a parameter) so that THIS object and check its private list Breakables for collisions.
+    /*This is used by an Eagle object (using itself as a parameter) so that THIS object and check its private list windows for collisions.
         if it is a collision on a currently in use, NOT hit breakable, the breakable becomes hit and the 'return true;' tells the eagle to
         stop all modifiers and 'kill' itself  */
     public boolean checkEagleCollidesWithBreakables(HeinousEntity pEntity) {
@@ -437,9 +437,9 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             return true;
         }
 
-        for(int i = 0; i < Breakables.length; i++){
-            if(Breakables[i].isInUse() && Breakables[i].collidesWith(pEntity) && !Breakables[i].isHit()){
-                Breakables[i].hit();
+        for(int i = 0; i < windows.length; i++){
+            if(windows[i].isInUse() && windows[i].collidesWith(pEntity) && !windows[i].isHit()){
+                windows[i].hit();
                 return true;
             }
         }
