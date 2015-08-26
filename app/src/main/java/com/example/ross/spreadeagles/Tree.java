@@ -14,7 +14,7 @@ import org.andengine.util.modifier.IModifier;
 public class Tree extends HeinousEntity {
 
     /* this is a comment line i added to test the pushing of code to see if it complete fucks steve with unnecessary config files  and more words*/
-    /*a second test of the commit thing about config files*/
+    /*a second test of the commit thing about config files */
 
     private SpreadEaglesActivity parentActivity;
     private MoveXModifier ModifierBuffer;
