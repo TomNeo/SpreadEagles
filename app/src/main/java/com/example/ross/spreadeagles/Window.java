@@ -33,7 +33,7 @@ public class Window extends Breakable {
     @Override
     public void hit() {
         hit = true;
-        parentActivity.addHit();
+        parentActivity.addPoints(1);
         this.setAlpha(0);
     }
 
