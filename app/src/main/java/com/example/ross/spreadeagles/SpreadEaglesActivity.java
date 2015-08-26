@@ -72,6 +72,8 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     public final static int BREAKABLE_Z_DEPTH = -1;
     public final static int BUILDING_Z_DEPTH = -2;
 
+    private int points;
+
     private int highestNumOfEagles;
     private int totalNumOfEagles;
     private int totalHits;
@@ -110,6 +112,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         totalHits = 0;
         totalBreakables = 0;
         life = 0;
+        points = 0;
         stopped = false;
        // mTree = new Tree(CAMERA_WIDTH, 0, BlockRegion, getVertexBufferObjectManager(), this);
         Log.v("TrashBin:", "INITIALIZED");
@@ -182,8 +185,9 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     }
 
     //Currently only being used to track total hits being posted in Log.v "FINAL"
-    public void addHit() {
-        totalHits++;
+    public void addPoints(int pointAmount) {
+        points += pointAmount;
+        Log.v("points", String.valueOf(points));
     }
 
     /*This runs at the end of every managedUpdate cycle. Used to recycle all 'killed' objects at a single time for synchronizing purposes.
