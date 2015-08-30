@@ -31,13 +31,13 @@ import java.io.InputStream;
 public class Main extends SimpleBaseGameActivity {
 
     private int CAMERA_WIDTH = 768;
-    private int CAMERA_HEIGHT = 1024;
+    private int CAMERA_HEIGHT = 576;
 
     private Camera mCamera;
     private Scene mScene;
 
-    private ITextureRegion leftEmptyRegion, leftFilledRegion, rightEmptyRegion, rightFilledRegion;
-    private ITexture leftEmptyTexture, leftFilledTexture, rightEmptyTexture, rightFilledTexture;
+    private ITextureRegion introRegion;
+    private ITexture introTexture;
 
     private SharedPreferences myPrefs;
 
@@ -47,53 +47,14 @@ public class Main extends SimpleBaseGameActivity {
         myPrefs = getSharedPreferences("levelCompletion", MODE_PRIVATE);
 
         try {
-            this.leftEmptyTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+            this.introTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
                 @Override
                 public InputStream open() throws IOException {
-                    return getAssets().open("gfx/left_half_empty.png");
+                    return getAssets().open("gfx/intro.png");
                 }
             });
-            this.leftEmptyTexture.load();
-            this.leftEmptyRegion = TextureRegionFactory.extractFromTexture(this.leftEmptyTexture);
-        } catch (IOException e) {
-            Debug.e(e);
-        }
-
-        try {
-            this.rightEmptyTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
-                @Override
-                public InputStream open() throws IOException {
-                    return getAssets().open("gfx/right_half_empty.png");
-                }
-            });
-            this.rightEmptyTexture.load();
-            this.rightEmptyRegion = TextureRegionFactory.extractFromTexture(this.rightEmptyTexture);
-        } catch (IOException e) {
-            Debug.e(e);
-        }
-
-        try {
-            this.leftFilledTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
-                @Override
-                public InputStream open() throws IOException {
-                    return getAssets().open("gfx/left_half_filled.png");
-                }
-            });
-            this.leftFilledTexture.load();
-            this.leftFilledRegion = TextureRegionFactory.extractFromTexture(this.leftFilledTexture);
-        } catch (IOException e) {
-            Debug.e(e);
-        }
-
-        try {
-            this.rightFilledTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
-                @Override
-                public InputStream open() throws IOException {
-                    return getAssets().open("gfx/right_half_filled.png");
-                }
-            });
-            this.rightFilledTexture.load();
-            this.rightFilledRegion = TextureRegionFactory.extractFromTexture(this.rightFilledTexture);
+            this.introTexture.load();
+            this.introRegion = TextureRegionFactory.extractFromTexture(this.introTexture);
         } catch (IOException e) {
             Debug.e(e);
         }
@@ -106,48 +67,20 @@ public class Main extends SimpleBaseGameActivity {
 
         mScene.setBackground(new Background(1, 1, 1, 0));
 
-        final Sprite leftEmpty = new Sprite(CAMERA_WIDTH/2 - 497, CAMERA_HEIGHT/2 - leftEmptyTexture.getHeight()/2, leftEmptyRegion, getVertexBufferObjectManager());
-        final Sprite rightEmpty = new Sprite(CAMERA_WIDTH/2, CAMERA_HEIGHT/2 - rightEmptyTexture.getHeight()/2, rightEmptyRegion, getVertexBufferObjectManager());
-        final Sprite leftFilled = new Sprite(CAMERA_WIDTH/2 - 497, CAMERA_HEIGHT/2 - leftFilledTexture.getHeight()/2, leftFilledRegion, getVertexBufferObjectManager());
-        final Sprite rightFilled = new Sprite(CAMERA_WIDTH/2, CAMERA_HEIGHT/2 - rightFilledTexture.getHeight()/2, rightFilledRegion, getVertexBufferObjectManager());
+        final Sprite introScreen = new Sprite(CAMERA_WIDTH/2 - introTexture.getWidth()/2, CAMERA_HEIGHT/2 - introTexture.getHeight()/2, introRegion, getVertexBufferObjectManager());
 
-        mScene.registerTouchArea(leftEmpty);
-        mScene.registerTouchArea(rightEmpty);
+        mScene.registerTouchArea(introScreen);
 
-        // check shared prefs
-        // if pref doesnt exist or is false for left game, attach left empty
-        // else, attach left filled
-        if (!myPrefs.getBoolean("leftFinished", false)) {
-            mScene.attachChild(leftEmpty);
-        } else {
-            mScene.attachChild(leftFilled);
-        }
-
-        // check shared prefs for right just like left
-        if (!myPrefs.getBoolean("rightFinished", false)) {
-            mScene.attachChild(rightEmpty);
-        } else {
-            mScene.attachChild(rightFilled);
-        }
+        mScene.attachChild(introScreen);
 
         mScene.setOnAreaTouchListener(new IOnAreaTouchListener() {
             @Override
             public boolean onAreaTouched(TouchEvent touchEvent, ITouchArea iTouchArea, float v, float v2) {
 
-                Intent intent = null;
-
-                if (iTouchArea.equals(leftEmpty) && touchEvent.isActionUp()) {
-                    Log.v("leftEmptyTouched", "true");
-                    intent = new Intent(Main.this, SpreadEaglesActivity.class);
+                if (touchEvent.isActionUp()) {
+                    Intent intent = new Intent(Main.this, SpreadEaglesActivity.class);
                     startActivity(intent);
                     finish();
-//                    mScene.attachChild(leftFilled);
-                } else if (iTouchArea.equals(rightEmpty) && touchEvent.isActionUp()) {
-                    Log.v("rightEmptyTouched", "true");
-                    intent = new Intent(Main.this, SpreadEaglesActivity.class);
-                    startActivity(intent);
-                    finish();
-//                    mScene.attachChild(rightFilled);
                 }
                 return false;
             }
@@ -159,7 +92,8 @@ public class Main extends SimpleBaseGameActivity {
     @Override
     public EngineOptions onCreateEngineOptions() {
         mCamera = new Camera(0.0F, 0.0F, CAMERA_WIDTH, CAMERA_HEIGHT);
-        EngineOptions localEngineOptions = new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED, new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), mCamera);
+        EngineOptions localEngineOptions = new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED,
+                new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), mCamera);
         localEngineOptions.getAudioOptions().setNeedsSound(true);
         localEngineOptions.getAudioOptions().setNeedsMusic(true);
         return localEngineOptions;
