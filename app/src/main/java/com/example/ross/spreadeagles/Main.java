@@ -65,7 +65,7 @@ public class Main extends SimpleBaseGameActivity {
     protected Scene onCreateScene() {
         mScene = new Scene();
 
-        mScene.setBackground(new Background(1, 1, 1, 0));
+        mScene.setColor(0, 0, 0);
 
         final Sprite introScreen = new Sprite(CAMERA_WIDTH/2 - introTexture.getWidth()/2, CAMERA_HEIGHT/2 - introTexture.getHeight()/2, introRegion, getVertexBufferObjectManager());
 
