@@ -47,8 +47,8 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     public final static int MAX_NUMBER_BUILDINGS = 4;
     public final static int MAX_NUMBER_BREAKABLES = 16;
 
-    public final static int CAMERA_WIDTH = 748;
-    public final static int CAMERA_HEIGHT = 480;
+    public final static int CAMERA_WIDTH = 768;
+    public final static int CAMERA_HEIGHT = 576;
     public final static int GAME_LENGTH = 46;   //in seconds
     public final static float EAGLE_HEIGHT = 70f;
     public final static float EAGLE_WIDTH = 70f;
@@ -78,6 +78,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private int totalNumOfEagles;
     private int totalHits;
     private int totalBreakables;
+//    private int currentEagleAmount;
     private float life;
 
     private Camera mCamera;
@@ -89,16 +90,16 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private Building[] Buildings;
     private Window[] windows;
     private ArrayList<HeinousEntity> recycleBin;
-    private Sprite foreground;
+    private Sprite foreground, foregroundFling;
 
-    private ITexture mHouseTexture, mWindowTexture, BlockTexture, CrosshairTexture, EaglesTexture, CarTexture;
+    private ITexture mHouseTexture, mWindowTexture, BlockTexture, CrosshairTexture, EaglesTexture, CarTexture, CarFlingTexture;
     private BitmapTextureAtlas mFontTexture;
     private Font mFont;
 
     private float gameLength;
 
     SharedPreferences myPrefs;
-    private ITextureRegion mHouseRegion, mWindowRegion, BlockRegion, CrosshairRegion, EaglesRegion, CarRegion;
+    private ITextureRegion mHouseRegion, mWindowRegion, BlockRegion, CrosshairRegion, EaglesRegion, CarRegion, CarFlingRegion;
     private boolean stopped;
 
     public SpreadEaglesActivity() {
@@ -108,6 +109,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         Buildings = new Building[MAX_NUMBER_BUILDINGS];
         windows = new Window[MAX_NUMBER_BREAKABLES];
         highestNumOfEagles = 0;
+//        currentEagleAmount = 0;
         totalNumOfEagles = 0;
         totalHits = 0;
         totalBreakables = 0;
@@ -286,10 +288,23 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         }
 
         try {
+            this.CarFlingTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+                @Override
+                public InputStream open() throws IOException {
+                    return getAssets().open("gfx/car3fling.png");
+                }
+            });
+            this.CarFlingTexture.load();
+            this.CarFlingRegion = TextureRegionFactory.extractFromTexture(this.CarFlingTexture);
+        } catch (IOException e) {
+            Debug.e(e);
+        }
+
+        try {
             this.CarTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
                 @Override
                 public InputStream open() throws IOException {
-                    return getAssets().open("gfx/car_inside.png");
+                    return getAssets().open("gfx/car3.png");
                 }
             });
             this.CarTexture.load();
@@ -335,8 +350,9 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         mScene.setBackground(mBackground);
 
         foreground = new Sprite(0, CAMERA_HEIGHT - CarTexture.getHeight(), CarRegion, getVertexBufferObjectManager());
+        foregroundFling = new Sprite(0, CAMERA_HEIGHT-CarFlingTexture.getHeight(), CarFlingRegion, getVertexBufferObjectManager());
 
-        attachEntityWithZ(foreground, CROSSHAIR_Z_DEPTH);
+        attachEntityWithZ(foreground, EAGLE_Z_DEPTH);
 
         mPlayer = new Crosshair((CAMERA_WIDTH / 4 - 32), (CAMERA_HEIGHT / 1.5f - 32), CrosshairRegion, getVertexBufferObjectManager(), this);
 
@@ -345,12 +361,16 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         mScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
             @Override
             public boolean onSceneTouchEvent(Scene scene, TouchEvent touchEvent) {
-                if (touchEvent.isActionDown()) {
+                if (touchEvent.isActionDown() /*&& currentEagleAmount < MAX_NUMBER_EAGLES*/) {
+//                    currentEagleAmount++;
                     mPlayer.setPosition(touchEvent.getX(), touchEvent.getY());
                     Log.v("get eagle", "Before");
                     Eagle eagleBuffer = getUnusedEagle();
                     eagleBuffer.useEagle(touchEvent.getX(), touchEvent.getY());
                     Log.v("get eagle", "after address:" + eagleBuffer.getAddress());
+                    attachEntityWithZ(foregroundFling, EAGLE_Z_DEPTH);
+                } else if (touchEvent.isActionUp()) {
+                    mScene.detachChild(foregroundFling);
                 }
                 return true;
             }
