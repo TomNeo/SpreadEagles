@@ -36,13 +36,41 @@ import java.util.Random;
 public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     /**
-     * **        This is my control panel for basically everything that is tweakable in the game so far.
+     * This is my control panel for basically everything that is tweakable in the game so far.
      *
      * I have a small list of considerations to keep in mind while setting these values:
      *
      * --EAGLE_COLLISION should be less than 1. anything >= 1 will result in ALL eagles killing themselves without ever checking for collisions.*
      * ***
      */
+
+    /**
+     * Steve's Log of things to do next and when they got finished:
+     *
+     * Create pre constructed houses that look like the preview fully built houses that came with
+     * the images.
+     *
+     * Create two versions of each object that is breakable. Windows, people, doors, chimneys,
+     * flowers, etc.
+     *
+     * Determine if there should be eagle splatters for sides of trees, houses, porches, etc.
+     *
+     * After getting all breakables in place for houses, pursue other images such as the flowers,
+     * people, etc.
+     *
+     * If not adding more images, focus on eagle generation speed, movement speed, and general game
+     * logistics.
+     *
+     * Add sound effects, music, or both?
+     *
+     * Win goals
+     *
+     * Is the game fun? Can it be more fun? Should stuff be added? Extra breakables that move like
+     * birds, UFOs? Should there be things you don't try to hit like the other members of the band?
+     * Can we add more images of Ride for different hits/misses? Update colors and more polish?
+     *
+     */
+
     public final static int MAX_NUMBER_EAGLES = 6;
     public final static int MAX_NUMBER_BUILDINGS = 4;
     public final static int MAX_NUMBER_BREAKABLES = 16;
@@ -52,18 +80,19 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     public final static int GAME_LENGTH = 46;   //in seconds
     public final static float EAGLE_HEIGHT = 70f;
     public final static float EAGLE_WIDTH = 70f;
-    public final static float EAGLE_SPEED = .25f;  // Furthest path takes n seconds, all others adjusted to this speed
+    public final static float EAGLE_SPEED = 1.5f;  // Furthest path takes n seconds, all others adjusted to this speed
     public final static float EAGLE_COLLISION = .9f;   // percentage as a decimal. how far along path before collisions are checked must be less than 1 or else it will never check for collision.
     public final static float CROSSHAIR_HEIGHT = 30f;
     public final static float CROSSHAIR_WIDTH = 30f;
-    public final static float INTERVAL_BETWEEN_BUILDINGS = 1.2f; //counted in seconds
-    public final static float BUILDING_SPEED = 2.5f;        //number of seconds it takes for the BUILDING_WIDTH_STANDARD (and all it's breakables) across the screen.
+    public final static float INTERVAL_BETWEEN_BUILDINGS = 2.3f; //counted in seconds
+    public final static float BUILDING_SPEED = 4f;        //number of seconds it takes for the BUILDING_WIDTH_STANDARD (and all it's breakables) across the screen.
     public final static float BUILDING_WIDTH_STANDARD = 250; //Used on the switch case default for building types, and sets the base speed for all buildings
     public final static float FOOTER_SPACE = 220;//distance from bottom of screen to bottom of buildings
     public final static float BUILDING_VELOCITY = (CAMERA_WIDTH + BUILDING_WIDTH_STANDARD)/BUILDING_SPEED; //calculated so we can adjust other settings and not have to redo the algebra
     public final static float TREE_BASE_HEIGHT = 70;//distance from bottom of screen to bottom of trees
     public final static float TREE_SPEED = BUILDING_SPEED * .7f;
     public final static float TREE_WIDTH = 44;
+    private final int MAX_EAGLES_ALLOWED = 5;
     /*Higher numbers will appear on top of lower numbers*/
 
     public final static int CROSSHAIR_Z_DEPTH = 2;
@@ -78,7 +107,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private int totalNumOfEagles;
     private int totalHits;
     private int totalBreakables;
-//    private int currentEagleAmount;
+    public static int currentEagleAmount;
     private float life;
 
     private Camera mCamera;
@@ -109,7 +138,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         Buildings = new Building[MAX_NUMBER_BUILDINGS];
         windows = new Window[MAX_NUMBER_BREAKABLES];
         highestNumOfEagles = 0;
-//        currentEagleAmount = 0;
+        currentEagleAmount = 0;
         totalNumOfEagles = 0;
         totalHits = 0;
         totalBreakables = 0;
@@ -345,7 +374,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
         mScene = new ZControlledScene();
 
-        mBackground = new Background(0, 0, 0, 1);
+        mBackground = new Background(0, 0, 0);
 
         mScene.setBackground(mBackground);
 
@@ -361,8 +390,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         mScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
             @Override
             public boolean onSceneTouchEvent(Scene scene, TouchEvent touchEvent) {
-                if (touchEvent.isActionDown() /*&& currentEagleAmount < MAX_NUMBER_EAGLES*/) {
-//                    currentEagleAmount++;
+                if (touchEvent.isActionDown() && currentEagleAmount < MAX_EAGLES_ALLOWED) {
                     mPlayer.setPosition(touchEvent.getX(), touchEvent.getY());
                     Log.v("get eagle", "Before");
                     Eagle eagleBuffer = getUnusedEagle();
@@ -370,6 +398,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                     Log.v("get eagle", "after address:" + eagleBuffer.getAddress());
                     attachEntityWithZ(foregroundFling, EAGLE_Z_DEPTH);
                 } else if (touchEvent.isActionUp()) {
+                    Log.v("currentEagleAmount: ", String.valueOf(currentEagleAmount));
                     mScene.detachChild(foregroundFling);
                 }
                 return true;
@@ -458,12 +487,16 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
         //if eagle is hitting tree, kill eagle, no need to check further
         if (pEntity.collidesWith(mTree)){
+//            currentEagleAmount--;
+            Log.v("currentEagleAmount: ", String.valueOf(currentEagleAmount));
             return true;
         }
 
-        for(int i = 0; i < windows.length; i++){
-            if(windows[i].isInUse() && windows[i].collidesWith(pEntity) && !windows[i].isHit()){
+        for (int i = 0; i < windows.length; i++){
+            if (windows[i].isInUse() && windows[i].collidesWith(pEntity) && !windows[i].isHit()){
                 windows[i].hit();
+//                currentEagleAmount--;
+                Log.v("currentEagleAmount: ", String.valueOf(currentEagleAmount));
                 return true;
             }
         }
