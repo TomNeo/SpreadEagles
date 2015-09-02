@@ -32,7 +32,8 @@ public class Eagle extends HeinousEntity {
         killed = false;
     }
 
-    public void useEagle(float destinationX, float destinationY){
+    public void useEagle(float destinationX, float destinationY) {
+        SpreadEaglesActivity.currentEagleAmount++;
         this.setInUse(true);
         if (destinationX <= SpreadEaglesActivity.CAMERA_WIDTH / 2) {
             this.setFlipped(true, false);
@@ -81,6 +82,7 @@ public class Eagle extends HeinousEntity {
         if(!killed) {
             killed = true;
             parentActivity.addToRecycleList(this);
+            SpreadEaglesActivity.currentEagleAmount--;
         }
     }
 
