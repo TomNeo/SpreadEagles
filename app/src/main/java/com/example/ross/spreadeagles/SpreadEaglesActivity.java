@@ -73,7 +73,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     public final static int MAX_NUMBER_EAGLES = 6;
     public final static int MAX_NUMBER_BUILDINGS = 4;
-    public final static int MAX_NUMBER_BREAKABLES = 16;
+    public final static int MAX_NUMBER_WINDOWS = 16;
 
     public final static int CAMERA_WIDTH = 768;
     public final static int CAMERA_HEIGHT = 576;
@@ -88,7 +88,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     public final static float BUILDING_SPEED = 4f;        //number of seconds it takes for the BUILDING_WIDTH_STANDARD (and all it's breakables) across the screen.
     public final static float BUILDING_WIDTH_STANDARD = 250; //Used on the switch case default for building types, and sets the base speed for all buildings
     public final static float FOOTER_SPACE = 220;//distance from bottom of screen to bottom of buildings
-    public final static float BUILDING_VELOCITY = (CAMERA_WIDTH + BUILDING_WIDTH_STANDARD)/BUILDING_SPEED; //calculated so we can adjust other settings and not have to redo the algebra
+    public final static float BUILDING_VELOCITY = (CAMERA_WIDTH + 240)/BUILDING_SPEED; //calculated so we can adjust other settings and not have to redo the algebra
     public final static float TREE_BASE_HEIGHT = 70;//distance from bottom of screen to bottom of trees
     public final static float TREE_SPEED = BUILDING_SPEED * .7f;
     public final static float TREE_WIDTH = 44;
@@ -119,16 +119,18 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private Building[] Buildings;
     private Window[] windows;
     private ArrayList<HeinousEntity> recycleBin;
-    private Sprite foreground, foregroundFling;
+    private Sprite foreground, foregroundFling, mHouseSprite;
 
-    private ITexture mHouseTexture, mWindowTexture, BlockTexture, CrosshairTexture, EaglesTexture, CarTexture, CarFlingTexture;
+    private ITexture mWindowTexture, BlockTexture, CrosshairTexture, EaglesTexture,
+            CarTexture, CarFlingTexture, mHouseTexture; //mHouseTexture,
     private BitmapTextureAtlas mFontTexture;
     private Font mFont;
 
     private float gameLength;
 
     SharedPreferences myPrefs;
-    private ITextureRegion mHouseRegion, mWindowRegion, BlockRegion, CrosshairRegion, EaglesRegion, CarRegion, CarFlingRegion;
+    private ITextureRegion mHouseRegion, mWindowRegion, BlockRegion, CrosshairRegion, EaglesRegion,
+            CarRegion, CarFlingRegion, mRoofRegion, mDoorRegion, mPorchRegion;
     private boolean stopped;
 
     public SpreadEaglesActivity() {
@@ -136,7 +138,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         recycleBin = new ArrayList<>(0);
         Eagles = new Eagle[MAX_NUMBER_EAGLES];
         Buildings = new Building[MAX_NUMBER_BUILDINGS];
-        windows = new Window[MAX_NUMBER_BREAKABLES];
+        windows = new Window[MAX_NUMBER_WINDOWS];
         highestNumOfEagles = 0;
         currentEagleAmount = 0;
         totalNumOfEagles = 0;
@@ -168,7 +170,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     }
 
     //Ran at onCreateResources(). Fills array windows with all the windows the game will need
-    private void populateBreakables(int count) {
+    private void populateWindows(int count) {
         for (int i = 0; i < windows.length; i++) {
             windows[i] = new Window(CAMERA_WIDTH / 2, CAMERA_HEIGHT, mWindowRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
             windows[i].setAddress(i);
@@ -204,7 +206,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     /*Used to return the first Breakable in windows that is currently not 'Used'
       NOTE: This method does NOT make that Breakable used */
-    public Breakable getUnusedBreakable() {
+    public Window getUnusedWindow() {
         for (int i = 0; i < windows.length; i++) {
             if (!windows[i].isInUse()) {
                 totalBreakables++;
@@ -278,30 +280,46 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         }
 
         try {
-            this.mWindowTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+            this.mHouseTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
                 @Override
                 public InputStream open() throws IOException {
-                    return getAssets().open("gfx/window.png");
+                    return getAssets().open("gfx/house_one.png");
                 }
             });
-            this.mWindowTexture.load();
-            this.mWindowRegion = TextureRegionFactory.extractFromTexture(this.mWindowTexture);
+            this.mHouseTexture.load();
+            this.mHouseRegion = TextureRegionFactory.extractFromTexture(this.mHouseTexture, 0, 0, 630, 790);
+            this.mDoorRegion = TextureRegionFactory.extractFromTexture(this.mHouseTexture, 229, 405, 174, 251);
+            this.mWindowRegion = TextureRegionFactory.extractFromTexture(this.mHouseTexture, 55, 430, 90, 175);
+//            this.mWindow2Region = TextureRegionFactory.extractFromTexture(this.mHouseTexture, 55, );
         } catch (IOException e) {
             Debug.e(e);
         }
 
-        try {
-            this.mHouseTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
-                @Override
-                public InputStream open() throws IOException {
-                    return getAssets().open("gfx/house.png");
-                }
-            });
-            this.mHouseTexture.load();
-            this.mHouseRegion = TextureRegionFactory.extractFromTexture(this.mHouseTexture);
-        } catch (IOException e) {
-            Debug.e(e);
-        }
+//        try {
+//            this.mWindowTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+//                @Override
+//                public InputStream open() throws IOException {
+//                    return getAssets().open("gfx/window.png");
+//                }
+//            });
+//            this.mWindowTexture.load();
+//            this.mWindowRegion = TextureRegionFactory.extractFromTexture(this.mWindowTexture);
+//        } catch (IOException e) {
+//            Debug.e(e);
+//        }
+
+//        try {
+//            this.mHouseTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+//                @Override
+//                public InputStream open() throws IOException {
+//                    return getAssets().open("gfx/house.png");
+//                }
+//            });
+//            this.mHouseTexture.load();
+//            this.mHouseRegion = TextureRegionFactory.extractFromTexture(this.mHouseTexture);
+//        } catch (IOException e) {
+//            Debug.e(e);
+//        }
 
         try {
             this.CrosshairTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
@@ -365,7 +383,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         this.getFontManager().loadFont(this.mFont);
         populateEagles(MAX_NUMBER_EAGLES);
         populateBuildings(MAX_NUMBER_BUILDINGS);
-        populateBreakables(MAX_NUMBER_BREAKABLES);
+        populateWindows(MAX_NUMBER_WINDOWS);
         mTree = new Tree(CAMERA_WIDTH, 0, BlockRegion, getVertexBufferObjectManager(), this);
     }
 
@@ -380,8 +398,10 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
         foreground = new Sprite(0, CAMERA_HEIGHT - CarTexture.getHeight(), CarRegion, getVertexBufferObjectManager());
         foregroundFling = new Sprite(0, CAMERA_HEIGHT-CarFlingTexture.getHeight(), CarFlingRegion, getVertexBufferObjectManager());
+        mHouseSprite = new Sprite(0, 0, mHouseRegion, getVertexBufferObjectManager());
 
         attachEntityWithZ(foreground, EAGLE_Z_DEPTH);
+//        attachEntityWithZ(mHouseSprite, EAGLE_Z_DEPTH);
 
         mPlayer = new Crosshair((CAMERA_WIDTH / 4 - 32), (CAMERA_HEIGHT / 1.5f - 32), CrosshairRegion, getVertexBufferObjectManager(), this);
 
@@ -426,7 +446,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                         BuildingCount = 0;
                         cycles = 0;
                         Building BuildingBuffer = getUnusedBuilding();
-                        offset = BuildingBuffer.useBuilding(0, CAMERA_HEIGHT - FOOTER_SPACE,rand.nextInt(3));//...so when the building knows how long it'll take, we offset the release of the next building
+                        offset = BuildingBuffer.useBuilding(0, CAMERA_HEIGHT - FOOTER_SPACE, 1);//rand.nextInt(3));//...so when the building knows how long it'll take, we offset the release of the next building
                     }
 
                     if (TreeCount >=  TREE_SPEED + treeOffset) {
