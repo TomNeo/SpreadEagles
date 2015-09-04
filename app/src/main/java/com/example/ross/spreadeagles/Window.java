@@ -34,7 +34,8 @@ public class Window extends Breakable {
     public void hit() {
         hit = true;
         parentActivity.addPoints(1);
-        this.setAlpha(0);
+//        this.setAlpha(0);
+        this.setColor(1,0,0,1);
     }
 
     @Override
