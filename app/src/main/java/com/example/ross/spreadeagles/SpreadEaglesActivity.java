@@ -118,11 +118,12 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private Eagle[] Eagles;
     private Building[] Buildings;
     private Window[] windows;
+    private Door[] doors;
     private ArrayList<HeinousEntity> recycleBin;
     private Sprite foreground, foregroundFling, mHouseSprite;
 
     private ITexture mWindowTexture, BlockTexture, CrosshairTexture, EaglesTexture,
-            CarTexture, CarFlingTexture, mHouseTexture; //mHouseTexture,
+            CarTexture, CarFlingTexture, mHouseTexture, mDoorTexture; //mHouseTexture,
     private BitmapTextureAtlas mFontTexture;
     private Font mFont;
 
@@ -139,6 +140,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         Eagles = new Eagle[MAX_NUMBER_EAGLES];
         Buildings = new Building[MAX_NUMBER_BUILDINGS];
         windows = new Window[MAX_NUMBER_WINDOWS];
+        doors = new Door[MAX_NUMBER_BUILDINGS];
         highestNumOfEagles = 0;
         currentEagleAmount = 0;
         totalNumOfEagles = 0;
@@ -165,6 +167,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         for (int i = 0; i < Buildings.length; i++) {
             Buildings[i] = new Building(CAMERA_WIDTH / 2, CAMERA_HEIGHT, mHouseRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
             Buildings[i].setAddress(i);
+            doors[i] = new Door(CAMERA_WIDTH/2, CAMERA_HEIGHT, mDoorRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
             Log.v("Gen-Bu", "Building:" + Buildings[i].getAddress());
         }
     }
@@ -211,6 +214,17 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             if (!windows[i].isInUse()) {
                 totalBreakables++;
                 return windows[i];
+            }
+        }
+        Log.v("Not found", "no building found");
+        return null;
+    }
+
+    public Door getUnusedDoor() {
+        for (int i = 0; i < doors.length; i++) {
+            if (!doors[i].isInUse()) {
+//                totalBreakables++;
+                return doors[i];
             }
         }
         Log.v("Not found", "no building found");
@@ -283,30 +297,43 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             this.mHouseTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
                 @Override
                 public InputStream open() throws IOException {
-                    return getAssets().open("gfx/house_one.png");
+                    return getAssets().open("gfx/house_one2.png");
                 }
             });
             this.mHouseTexture.load();
             this.mHouseRegion = TextureRegionFactory.extractFromTexture(this.mHouseTexture, 0, 0, 630, 790);
-            this.mDoorRegion = TextureRegionFactory.extractFromTexture(this.mHouseTexture, 229, 405, 174, 251);
-            this.mWindowRegion = TextureRegionFactory.extractFromTexture(this.mHouseTexture, 55, 430, 90, 175);
+//            this.mDoorRegion = TextureRegionFactory.extractFromTexture(this.mHouseTexture, 229, 405, 174, 251);
+//            this.mWindowRegion = TextureRegionFactory.extractFromTexture(this.mHouseTexture, 55, 430, 90, 175);
 //            this.mWindow2Region = TextureRegionFactory.extractFromTexture(this.mHouseTexture, 55, );
         } catch (IOException e) {
             Debug.e(e);
         }
 
-//        try {
-//            this.mWindowTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
-//                @Override
-//                public InputStream open() throws IOException {
-//                    return getAssets().open("gfx/window.png");
-//                }
-//            });
-//            this.mWindowTexture.load();
-//            this.mWindowRegion = TextureRegionFactory.extractFromTexture(this.mWindowTexture);
-//        } catch (IOException e) {
-//            Debug.e(e);
-//        }
+        try {
+            this.mWindowTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+                @Override
+                public InputStream open() throws IOException {
+                    return getAssets().open("gfx/window2.png");
+                }
+            });
+            this.mWindowTexture.load();
+            this.mWindowRegion = TextureRegionFactory.extractFromTexture(this.mWindowTexture);
+        } catch (IOException e) {
+            Debug.e(e);
+        }
+
+        try {
+            this.mDoorTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+                @Override
+                public InputStream open() throws IOException {
+                    return getAssets().open("gfx/door.png");
+                }
+            });
+            this.mDoorTexture.load();
+            this.mDoorRegion = TextureRegionFactory.extractFromTexture(this.mDoorTexture);
+        } catch (IOException e) {
+            Debug.e(e);
+        }
 
 //        try {
 //            this.mHouseTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
@@ -515,6 +542,15 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         for (int i = 0; i < windows.length; i++){
             if (windows[i].isInUse() && windows[i].collidesWith(pEntity) && !windows[i].isHit()){
                 windows[i].hit();
+//                currentEagleAmount--;
+                Log.v("currentEagleAmount: ", String.valueOf(currentEagleAmount));
+                return true;
+            }
+        }
+
+        for (int i = 0; i < doors.length; i++){
+            if (doors[i].isInUse() && doors[i].collidesWith(pEntity) && !doors[i].isHit()){
+                doors[i].hit();
 //                currentEagleAmount--;
                 Log.v("currentEagleAmount: ", String.valueOf(currentEagleAmount));
                 return true;
