@@ -13,9 +13,18 @@ import org.andengine.util.modifier.IModifier;
  */
 public class Window extends Breakable {
 
-    public Window(float pX, float pY, ITextureRegion pTextureRegion, VertexBufferObjectManager pVertexBufferObjectManager, SpreadEaglesActivity pParent) {
+    public boolean isWindowOne() {
+        return isWindowOne;
+    }
+
+    private boolean isWindowOne;
+
+    public Window(float pX, float pY, ITextureRegion pTextureRegion,
+                  VertexBufferObjectManager pVertexBufferObjectManager, SpreadEaglesActivity pParent,
+                  boolean mIsWindowOne) {
         super(pX, pY, pTextureRegion, pVertexBufferObjectManager, pParent);
         this.setAlpha(1);
+        isWindowOne = mIsWindowOne;
     }
 
     @Override
@@ -63,4 +72,5 @@ public class Window extends Breakable {
         });
         this.registerEntityModifier(pIEntityModifier);
     }
+
 }
