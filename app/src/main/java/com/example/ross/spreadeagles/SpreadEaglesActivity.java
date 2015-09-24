@@ -85,7 +85,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     public final static float CROSSHAIR_HEIGHT = 30f;
     public final static float CROSSHAIR_WIDTH = 30f;
     public final static float INTERVAL_BETWEEN_BUILDINGS = 2.3f; //counted in seconds
-    public final static float BUILDING_SPEED = 4f;        //number of seconds it takes for the BUILDING_WIDTH_STANDARD (and all it's breakables) across the screen.
+    public final static float BUILDING_SPEED = 2f;        //number of seconds it takes for the BUILDING_WIDTH_STANDARD (and all it's breakables) across the screen.
     public final static float BUILDING_WIDTH_STANDARD = 250; //Used on the switch case default for building types, and sets the base speed for all buildings
     public final static float FOOTER_SPACE = 220;//distance from bottom of screen to bottom of buildings
     public final static float BUILDING_VELOCITY = (CAMERA_WIDTH + 240)/BUILDING_SPEED; //calculated so we can adjust other settings and not have to redo the algebra
@@ -122,7 +122,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private ArrayList<HeinousEntity> recycleBin;
     private Sprite foreground, foregroundFling, mHouseSprite;
 
-    private ITexture mWindowTexture, BlockTexture, CrosshairTexture, EaglesTexture,
+    private ITexture mWindowTexture, mWindowTwoTexture, BlockTexture, CrosshairTexture, EaglesTexture,
             CarTexture, CarFlingTexture, mHouseTexture, mDoorTexture; //mHouseTexture,
     private BitmapTextureAtlas mFontTexture;
     private Font mFont;
@@ -130,7 +130,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
     private float gameLength;
 
     SharedPreferences myPrefs;
-    private ITextureRegion mHouseRegion, mWindowRegion, BlockRegion, CrosshairRegion, EaglesRegion,
+    private ITextureRegion mHouseRegion, mWindowRegion, mWindowTwoRegion, BlockRegion, CrosshairRegion, EaglesRegion,
             CarRegion, CarFlingRegion, mRoofRegion, mDoorRegion, mPorchRegion;
     private boolean stopped;
 
@@ -174,8 +174,13 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
 
     //Ran at onCreateResources(). Fills array windows with all the windows the game will need
     private void populateWindows(int count) {
+        Random randWindow = new Random();
         for (int i = 0; i < windows.length; i++) {
-            windows[i] = new Window(CAMERA_WIDTH / 2, CAMERA_HEIGHT, mWindowRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this);
+            if (i%2==0) {
+                windows[i] = new Window(CAMERA_WIDTH / 2, CAMERA_HEIGHT, mWindowRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this, true);
+            } else {
+                windows[i] = new Window(CAMERA_WIDTH / 2, CAMERA_HEIGHT, mWindowTwoRegion, getVertexBufferObjectManager(), SpreadEaglesActivity.this, false);
+            }
             windows[i].setAddress(i);
             Log.v("Gen-Br", "Breakable:" + windows[i].getAddress());
         }
@@ -207,13 +212,18 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         return null;
     }
 
-    /*Used to return the first Breakable in windows that is currently not 'Used'
+    /*Used to return the first Breakable in windows that i.s currently not 'Used'
       NOTE: This method does NOT make that Breakable used */
-    public Window getUnusedWindow() {
+    public Window getUnusedWindow(boolean needsWindowOne) {
         for (int i = 0; i < windows.length; i++) {
             if (!windows[i].isInUse()) {
-                totalBreakables++;
-                return windows[i];
+                if (needsWindowOne && windows[i].isWindowOne()) {
+                    totalBreakables++;
+                    return windows[i];
+                } else if (!needsWindowOne && !windows[i].isWindowOne()) {
+                    totalBreakables++;
+                    return windows[i];
+                }
             }
         }
         Log.v("Not found", "no building found");
@@ -297,7 +307,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             this.mHouseTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
                 @Override
                 public InputStream open() throws IOException {
-                    return getAssets().open("gfx/house_one2.png");
+                    return getAssets().open("gfx/house_final.png");
                 }
             });
             this.mHouseTexture.load();
@@ -318,6 +328,19 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
             });
             this.mWindowTexture.load();
             this.mWindowRegion = TextureRegionFactory.extractFromTexture(this.mWindowTexture);
+        } catch (IOException e) {
+            Debug.e(e);
+        }
+
+        try {
+            this.mWindowTwoTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+                @Override
+                public InputStream open() throws IOException {
+                    return getAssets().open("gfx/window3.png");
+                }
+            });
+            this.mWindowTwoTexture.load();
+            this.mWindowTwoRegion = TextureRegionFactory.extractFromTexture(this.mWindowTwoTexture);
         } catch (IOException e) {
             Debug.e(e);
         }
@@ -409,6 +432,17 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
         this.mEngine.getTextureManager().loadTexture(this.mFontTexture);
         this.getFontManager().loadFont(this.mFont);
         populateEagles(MAX_NUMBER_EAGLES);
+        /**
+         * TODO:
+         * get 2nd house to work, just replace the region for now.
+         * create new building class. get same initial variables from original.
+         * make a sprite object in the building object that can be returned.
+         * make the case generate the sprite that's returned.
+         * make populate buildings just populate 10 buildings,
+         * dont let usebuilding take the random number to return the case
+         * just let it grab the right building and use the sprite object, which will have already
+         * been randomized in the Building constructor
+         * */
         populateBuildings(MAX_NUMBER_BUILDINGS);
         populateWindows(MAX_NUMBER_WINDOWS);
         mTree = new Tree(CAMERA_WIDTH, 0, BlockRegion, getVertexBufferObjectManager(), this);
@@ -473,7 +507,7 @@ public class SpreadEaglesActivity extends SimpleBaseGameActivity {
                         BuildingCount = 0;
                         cycles = 0;
                         Building BuildingBuffer = getUnusedBuilding();
-                        offset = BuildingBuffer.useBuilding(0, CAMERA_HEIGHT - FOOTER_SPACE, 1);//rand.nextInt(3));//...so when the building knows how long it'll take, we offset the release of the next building
+                        offset = BuildingBuffer.useBuilding(0, CAMERA_HEIGHT - FOOTER_SPACE, rand.nextInt(3));//rand.nextInt(3));//...so when the building knows how long it'll take, we offset the release of the next building
                     }
 
                     if (TreeCount >=  TREE_SPEED + treeOffset) {
